@@ -1,0 +1,14 @@
+{
+  "file_path": "C:/data/hr.xlsx",
+  "conditions": [
+    "部门包含技术"
+  ],
+  "columns": [
+    "姓名",
+    "邮箱",
+    "电话"
+  ],
+  "sort_by": "姓名",
+  "sort_ascending": true,
+  "output_format": "table"
+}
