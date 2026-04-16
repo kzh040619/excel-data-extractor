@@ -19,15 +19,19 @@ ENV/
 .DS_Store
 Thumbs.db
 
-# Project specific
+# Project specific - User data and configs
 backend/data/uploads/*
 !backend/data/uploads/.gitkeep
 backend/data/exports/*
 !backend/data/exports/.gitkeep
 backend/data/llm_config.json
+backend/data/config.json
 backend/data/files.json
 backend/data/tasks.json
 backend/data/pending_ai_tasks.json
+data/llm_config.json
+data/config.json
+data/files.json
 
 # Frontend
 frontend/node_modules/

@@ -29,11 +29,31 @@
 
 #### 1. 克隆项目
 ```bash
-git clone https://github.com/你的用户名/excel-data-extractor.git
+git clone https://github.com/kzh040619/excel-data-extractor.git
 cd excel-data-extractor
 ```
 
-#### 2. 启动后端
+#### 2. 配置环境（首次安装必须）
+```bash
+# 复制配置文件模板
+cp backend/data/llm_config.example.json backend/data/llm_config.json
+
+# 或手动创建 backend/data/llm_config.json，内容如下：
+# {
+#   "provider": "deepseek",
+#   "baseUrl": "https://api.deepseek.com",
+#   "model": "deepseek-chat",
+#   "apiKey": "your-api-key-here",
+#   "configured": false
+# }
+```
+
+⚠️ **重要提示**：
+- 首次使用需要在Web界面配置API Key
+- 访问 https://platform.deepseek.com 获取免费API Key
+- 配置文件包含敏感信息，已被.gitignore忽略
+
+#### 3. 启动后端
 ```bash
 cd backend
 pip install -r requirements.txt
