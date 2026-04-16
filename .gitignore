@@ -1,0 +1,42 @@
+*.pyc
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+backend/data/uploads/*
+!backend/data/uploads/.gitkeep
+backend/data/exports/*
+!backend/data/exports/.gitkeep
+backend/data/llm_config.json
+backend/data/files.json
+backend/data/tasks.json
+backend/data/pending_ai_tasks.json
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/*.local
+frontend/tsconfig.tsbuildinfo
+frontend/vite.config.js
+
+# Logs
+*.log
+logs/

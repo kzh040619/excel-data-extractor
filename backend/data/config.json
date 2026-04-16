@@ -1,0 +1,8 @@
+{
+  "llm": {
+    "provider": "openai-compatible",
+    "baseUrl": "https://api.openai.com/v1",
+    "model": "gpt-4o",
+    "apiKey": "c2stc3ZjYWNjdC16VjJqeU1RNEVGbGFPNzJPLThkYkgzd3pEQWxjTmE2Sk5GblNGejFaMkZrMktMWEVzRkZ6V1VFNjhHVFF4WUU5VlZ2QXdBTWE0VVQzQmxia0ZKSnFQWjdsWFJFcnplTmdDZzlXVy0xdWVTanhhNDBhSV9heTQyZmw2Q3NNVFlTU0xSd2NENVhOYmFQaklON1NmdEdrU1hLUU9IY0E="
+  }
+}

@@ -1,0 +1,229 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.app-container {
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+.top-bar {
+  background: #fff;
+  border-bottom: 1px solid #e8e8e8;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.top-bar .file-label {
+  font-weight: 600;
+  color: #333;
+  margin-right: 8px;
+}
+
+.top-bar .file-name {
+  color: #1890ff;
+  font-weight: 500;
+}
+
+.top-bar .file-status {
+  font-size: 12px;
+  color: #666;
+}
+
+.top-bar .top-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+
+.main-content {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.section-card {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.section-card .ant-card-body {
+  padding: 24px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.filter-item label {
+  display: block;
+  font-size: 13px;
+  color: #555;
+  margin-bottom: 4px;
+}
+
+.filter-item .ant-input {
+  width: 100%;
+}
+
+.action-bar {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.result-area {
+  margin-top: 16px;
+}
+
+.query-input-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.query-input-row .ant-input {
+  flex: 1;
+}
+
+.quick-hints {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.quick-hints .ant-tag {
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.result-card {
+  background: #fafafa;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  padding: 16px;
+}
+
+.result-card .field-row {
+  display: flex;
+  padding: 6px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.result-card .field-row:last-child {
+  border-bottom: none;
+}
+
+.result-card .field-label {
+  width: 120px;
+  color: #666;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.result-card .field-value {
+  color: #333;
+  word-break: break-all;
+}
+
+.chat-area {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chat-messages {
+  max-height: 300px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  background: #fafafa;
+  border-radius: 6px;
+}
+
+.chat-message {
+  max-width: 80%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.chat-message.user {
+  align-self: flex-end;
+  background: #1890ff;
+  color: #fff;
+}
+
+.chat-message.assistant {
+  align-self: flex-start;
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  color: #333;
+}
+
+.chat-message.error {
+  align-self: flex-start;
+  background: #fff1f0;
+  border: 1px solid #ffa39e;
+  color: #f5222d;
+}
+
+.chat-input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.chat-input-row .ant-input {
+  flex: 1;
+}
+
+.config-notice {
+  background: #e6f7ff;
+  border: 1px solid #91d5ff;
+  border-radius: 6px;
+  padding: 16px;
+  text-align: center;
+}
+
+.config-notice .ant-btn {
+  margin-left: 8px;
+}
+
+.multi-match-table {
+  margin-top: 12px;
+}
+
+.download-link {
+  margin-top: 8px;
+}
