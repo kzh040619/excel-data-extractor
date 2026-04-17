@@ -383,7 +383,6 @@ function App() {
               </Button>
             ))}
           </div>
-          </div>
           {quickResult && (
             <div className="result-area">
               {quickResult.matchType === 'single' && (
