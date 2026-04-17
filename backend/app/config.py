@@ -1,78 +1,56 @@
+"""
+配置文件 - v1.0.2
+"""
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parents[2]
-DATA_DIR = BASE_DIR / "backend" / "data"
+# 基础目录
+BASE_DIR = Path(__file__).parent.parent
+DATA_DIR = BASE_DIR / "data"
 UPLOAD_DIR = DATA_DIR / "uploads"
 EXPORT_DIR = DATA_DIR / "exports"
-CONFIG_PATH = DATA_DIR / "config.json"
-FILES_DB_PATH = DATA_DIR / "files.json"
-TASKS_DB_PATH = DATA_DIR / "tasks.json"
+CACHE_DIR = DATA_DIR / "cache"
 
-SAFE_FIELDS = [
-    "用户名",
-    "姓名",
-    "证件姓名",
-    "部门",
-    "劳动合同主体",
-    "合同开始日期",
-    "合同结束日期",
-    "工时性质",
-    "社保地",
-    "工作地",
-    "HRBP",
-    "HRBPhead",
+# 文件路径
+FILES_JSON = DATA_DIR / "files.json"
+TASKS_JSON = DATA_DIR / "tasks.json"
+PENDING_AI_TASKS_JSON = DATA_DIR / "pending_ai_tasks.json"
+CONFIG_JSON = DATA_DIR / "config.json"
+LLM_CONFIG_JSON = DATA_DIR / "llm_config.json"
+HISTORY_JSON = DATA_DIR / "query_history.json"  # 新增：查询历史
+SHORTCUTS_JSON = DATA_DIR / "shortcuts.json"  # 新增：快捷操作
+SENSITIVE_FIELDS_JSON = DATA_DIR / "sensitive_fields.json"  # 新增：自定义敏感字段
+
+# 确保目录存在
+for directory in [DATA_DIR, UPLOAD_DIR, EXPORT_DIR, CACHE_DIR]:
+    directory.mkdir(parents=True, exist_ok=True)
+
+# 默认敏感字段列表
+DEFAULT_SENSITIVE_FIELDS = [
+    "身份证号", "证件号码", "护照号码",
+    "银行卡号", "银行账号", "开户行",
+    "手机号", "电话号码", "联系电话", "紧急联系人电话",
+    "邮箱", "电子邮箱", "个人邮箱", "公司邮箱",
+    "家庭住址", "现住址", "户籍地址", "详细地址",
+    "紧急联系人", "紧急联系人姓名", "紧急联系人关系",
+    "社保账号", "公积金账号", "社会保险号",
+    "薪资", "工资", "基本工资", "月薪", "年薪", "薪酬",
 ]
 
-SENSITIVE_FIELDS = [
-    "身份证号",
-    "证件号码",
-    "银行卡号",
-    "开户行",
-    "银行名称",
-    "银行账号",
-    "账户所有人",
-    "邮箱",
-    "个人邮箱",
-    "公司邮箱",
-    "薪资",
-    "手机号",
-    "电话号码",
-    "联系电话",
-    "家庭住址",
-    "现住址",
-    "户籍地址",
-    "紧急联系人",
-    "紧急联系人电话",
-    "主要联系人关系",
-    "主要联系人姓名",
-    "主要联系人电话",
-    "社保账号",
-    "公积金账号",
-    "证件类型",
-]
+# 版本信息
+VERSION = "1.0.2"
+GITHUB_REPO = "kzh040619/excel-data-extractor"
 
-FIELD_ALIASES = {
-    "hrbp": "HRBP姓名",
-    "hrbphead": "HRBP Head姓名",
-    "hrbp姓名": "HRBP姓名",
-    "合同主体": "劳动合同主体",
-    "开始日期": "合同开始日期",
-    "结束日期": "合同结束日期",
-    "社保": "社保缴纳地",
-    "社保地": "社保缴纳地",
-    "工作城市": "工作地点名称",
-    "工作地": "工作地点名称",
-    "业务部": "所属部门",
-    "事业部": "所属部门",
-    "组织": "所属部门",
-    "部门": "所属部门",
-    "职级": "职位名称",
-    "职位": "职位名称",
-    "入职": "入职日期",
-    "离职": "离职日期",
-    "姓名": "姓名",
-    "用户名": "用户名",
-    "工号": "工号",
+# 性能配置
+MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
+CHUNK_SIZE = 10000  # 大文件分块处理行数
+CACHE_EXPIRY = 3600  # 缓存过期时间（秒）
+MAX_PREVIEW_ROWS = 50  # 预览最大行数
+
+# LLM配置
+DEFAULT_LLM_CONFIG = {
+    "provider": "deepseek",
+    "baseUrl": "https://api.deepseek.com",
+    "model": "deepseek-chat",
+    "apiKey": "",
+    "configured": False
 }
-
-DEFAULT_SHEET = 0

@@ -315,5 +315,284 @@ def download_file(file_name: str) -> FileResponse:
     return FileResponse(path=target_path, filename=file_name)
 
 
+# ============ v1.0.2 新增API ============
+
+# 1. 查询历史相关
+from app.services.history_service import (
+    get_recent_history,
+    add_history_record,
+    delete_history_record,
+    clear_history,
+)
+
+
+class AddHistoryRequest(BaseModel):
+    queryType: str
+    queryContent: str
+    filters: list[dict[str, Any]] | None = None
+    resultCount: int = 0
+    fileId: str | None = None
+
+
+@app.get("/api/history")
+def get_history(limit: int = 20) -> list[dict[str, Any]]:
+    """获取查询历史"""
+    return get_recent_history(limit)
+
+
+@app.post("/api/history")
+def add_history(payload: AddHistoryRequest) -> dict[str, Any]:
+    """添加历史记录"""
+    return add_history_record(
+        query_type=payload.queryType,
+        query_content=payload.queryContent,
+        filters=payload.filters,
+        result_count=payload.resultCount,
+        file_id=payload.fileId,
+    )
+
+
+@app.delete("/api/history/{history_id}")
+def delete_history(history_id: str) -> dict[str, bool]:
+    """删除历史记录"""
+    success = delete_history_record(history_id)
+    return {"success": success}
+
+
+@app.delete("/api/history")
+def clear_all_history() -> dict[str, bool]:
+    """清空所有历史"""
+    clear_history()
+    return {"success": True}
+
+
+# 2. 快捷操作相关
+from app.services.shortcut_service import (
+    get_all_shortcuts,
+    add_shortcut,
+    delete_shortcut,
+    update_shortcut,
+)
+
+
+class AddShortcutRequest(BaseModel):
+    name: str
+    queryType: str
+    queryContent: str
+    filters: list[dict[str, Any]] | None = None
+    columns: list[str] | None = None
+
+
+class UpdateShortcutRequest(BaseModel):
+    name: str | None = None
+
+
+@app.get("/api/shortcuts")
+def get_shortcuts() -> list[dict[str, Any]]:
+    """获取所有快捷操作"""
+    return get_all_shortcuts()
+
+
+@app.post("/api/shortcuts")
+def create_shortcut(payload: AddShortcutRequest) -> dict[str, Any]:
+    """创建快捷操作"""
+    return add_shortcut(
+        name=payload.name,
+        query_type=payload.queryType,
+        query_content=payload.queryContent,
+        filters=payload.filters,
+        columns=payload.columns,
+    )
+
+
+@app.delete("/api/shortcuts/{shortcut_id}")
+def remove_shortcut(shortcut_id: str) -> dict[str, bool]:
+    """删除快捷操作"""
+    success = delete_shortcut(shortcut_id)
+    return {"success": success}
+
+
+@app.patch("/api/shortcuts/{shortcut_id}")
+def modify_shortcut(shortcut_id: str, payload: UpdateShortcutRequest) -> dict[str, Any]:
+    """更新快捷操作"""
+    result = update_shortcut(shortcut_id, name=payload.name)
+    if result:
+        return result
+    raise HTTPException(status_code=404, detail="快捷操作不存在")
+
+
+# 3. 敏感字段管理
+from app.services.sensitive_service import (
+    load_sensitive_fields,
+    add_sensitive_field,
+    remove_sensitive_field,
+    reset_to_default,
+    get_safe_columns,
+)
+
+
+class AddSensitiveFieldRequest(BaseModel):
+    field: str
+
+
+@app.get("/api/sensitive-fields")
+def get_sensitive_fields() -> list[str]:
+    """获取敏感字段列表"""
+    return load_sensitive_fields()
+
+
+@app.post("/api/sensitive-fields")
+def create_sensitive_field(payload: AddSensitiveFieldRequest) -> list[str]:
+    """添加敏感字段"""
+    return add_sensitive_field(payload.field)
+
+
+@app.delete("/api/sensitive-fields/{field}")
+def remove_sensitive_field_api(field: str) -> list[str]:
+    """删除敏感字段"""
+    return remove_sensitive_field(field)
+
+
+@app.post("/api/sensitive-fields/reset")
+def reset_sensitive_fields() -> list[str]:
+    """重置为默认敏感字段"""
+    return reset_to_default()
+
+
+# 4. 统计报表
+from app.services.stats_service import (
+    generate_department_stats,
+    generate_resignation_analysis,
+    generate_contract_expiry_analysis,
+    generate_comprehensive_report,
+)
+
+
+class StatsRequest(BaseModel):
+    fileId: str
+    sheetName: str | int | None = None
+
+
+@app.post("/api/stats/department")
+def get_department_stats(payload: StatsRequest) -> dict[str, Any]:
+    """部门统计"""
+    record = _current_or_throw(payload.fileId)
+    df = load_workbook(record["storedPath"], payload.sheetName or record.get("sheetName"))
+    return generate_department_stats(df)
+
+
+@app.post("/api/stats/resignation")
+def get_resignation_stats(payload: StatsRequest) -> dict[str, Any]:
+    """离职分析"""
+    record = _current_or_throw(payload.fileId)
+    df = load_workbook(record["storedPath"], payload.sheetName or record.get("sheetName"))
+    return generate_resignation_analysis(df)
+
+
+@app.post("/api/stats/contract-expiry")
+def get_contract_expiry_stats(payload: StatsRequest) -> dict[str, Any]:
+    """合同到期分析"""
+    record = _current_or_throw(payload.fileId)
+    df = load_workbook(record["storedPath"], payload.sheetName or record.get("sheetName"))
+    return generate_contract_expiry_analysis(df)
+
+
+@app.post("/api/stats/comprehensive")
+def get_comprehensive_stats(payload: StatsRequest) -> dict[str, Any]:
+    """综合报表"""
+    record = _current_or_throw(payload.fileId)
+    df = load_workbook(record["storedPath"], payload.sheetName or record.get("sheetName"))
+    return generate_comprehensive_report(df)
+
+
+# 5. 批量查询
+from app.services.excel_service import batch_query
+
+
+class BatchQueryRequest(BaseModel):
+    fileId: str
+    names: list[str]
+    fields: list[str]
+    sheetName: str | int | None = None
+
+
+@app.post("/api/query/batch")
+def batch_query_api(payload: BatchQueryRequest) -> dict[str, Any]:
+    """批量查询多人信息"""
+    record = _current_or_throw(payload.fileId)
+    try:
+        df = load_workbook(record["storedPath"], payload.sheetName or record.get("sheetName"))
+        result = batch_query(df, payload.names, payload.fields)
+        
+        # 记录历史
+        add_history_record(
+            query_type="batch",
+            query_content=f"批量查询{len(payload.names)}人: {', '.join(payload.fields)}",
+            result_count=result.get("found", 0),
+            file_id=payload.fileId,
+        )
+        
+        return result
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+# 6. 缓存管理
+from app.services.cache_service import cache_service
+
+
+@app.get("/api/cache/stats")
+def get_cache_stats() -> dict[str, Any]:
+    """获取缓存统计"""
+    return cache_service.get_cache_stats()
+
+
+@app.post("/api/cache/clear")
+def clear_cache() -> dict[str, bool]:
+    """清空所有缓存"""
+    cache_service.clear_all()
+    return {"success": True}
+
+
+@app.delete("/api/cache/{file_id}")
+def invalidate_file_cache(file_id: str) -> dict[str, bool]:
+    """使特定文件缓存失效"""
+    cache_service.invalidate(file_id)
+    return {"success": True}
+
+
+# 7. 版本更新
+from app.services.version_service import check_for_updates, get_current_version
+
+
+@app.get("/api/version")
+def get_version() -> dict[str, str]:
+    """获取当前版本"""
+    return get_current_version()
+
+
+@app.get("/api/version/check")
+async def check_updates() -> dict[str, Any]:
+    """检查更新"""
+    return await check_for_updates()
+
+
+# 8. 文件删除（新增）
+from app.services.file_service import delete_file
+
+
+@app.delete("/api/files/{file_id}")
+def delete_file_api(file_id: str) -> dict[str, bool]:
+    """删除文件"""
+    try:
+        success = delete_file(file_id)
+        if success:
+            # 清除缓存
+            cache_service.invalidate(file_id)
+        return {"success": success}
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
 if __name__ == "__main__":
     uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=True)

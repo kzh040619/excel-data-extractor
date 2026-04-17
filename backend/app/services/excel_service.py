@@ -8,7 +8,18 @@ from typing import Any
 
 import pandas as pd
 
-from app.config import EXPORT_DIR, FIELD_ALIASES, SAFE_FIELDS, SENSITIVE_FIELDS
+from app.config import EXPORT_DIR
+
+# 字段别名映射
+FIELD_ALIASES = {
+    "hrbp": "HRBP姓名",
+    "bp": "HRBP姓名",
+    "合同主体": "劳动合同主体",
+    "合同结束日期": "劳动合同/协议结束日期",
+    "合同开始日期": "劳动合同/协议开始日",
+    "社保地": "社保缴纳地",
+    "工作地": "工作地点名称",
+}
 
 NAME_FIELDS = ["用户名", "姓名", "证件姓名"]
 MULTI_MATCH_FIELDS = ["用户名", "姓名", "证件姓名", "部门", "劳动合同主体", "工作地", "HRBP", "合同结束日期"]
@@ -181,8 +192,10 @@ def apply_filters(df: pd.DataFrame, filters: list[dict[str, str]]) -> pd.DataFra
 
 def safe_columns(df: pd.DataFrame, columns: list[str] | None = None) -> list[str]:
     """返回要展示/导出的列，保留所有原始列（除了黑名单字段）"""
+    from app.services.sensitive_service import get_safe_columns
+    
     # 先过滤掉黑名单字段
-    all_columns = [col for col in df.columns if col not in SENSITIVE_FIELDS]
+    all_columns = get_safe_columns(list(df.columns))
     
     if not columns:
         return all_columns
@@ -299,6 +312,9 @@ def quick_query(df: pd.DataFrame, query: str) -> dict[str, Any]:
     base_columns = ["姓名", "用户名", "证件姓名"]
     
     if len(exact_matches) == 1:
+        from app.services.sensitive_service import load_sensitive_fields
+        sensitive_fields = load_sensitive_fields()
+        
         row = exact_matches.iloc[0]
         
         # 只返回基础信息 + 请求的字段
@@ -306,7 +322,7 @@ def quick_query(df: pd.DataFrame, query: str) -> dict[str, Any]:
         if requested_column and requested_column not in result_columns:
             result_columns.append(requested_column)
         
-        safe_row = {col: row[col] for col in result_columns if col in df.columns and col not in SENSITIVE_FIELDS}
+        safe_row = {col: row[col] for col in result_columns if col in df.columns and col not in sensitive_fields}
         
         return {
             "matchType": "single",
@@ -316,12 +332,15 @@ def quick_query(df: pd.DataFrame, query: str) -> dict[str, Any]:
         }
     
     # 多条匹配时，返回基础信息 + 请求的字段
+    from app.services.sensitive_service import load_sensitive_fields
+    sensitive_fields = load_sensitive_fields()
+    
     result_columns = [col for col in base_columns if col in df.columns]
     if requested_column and requested_column not in result_columns:
         result_columns.append(requested_column)
     
     # 过滤敏感字段
-    result_columns = [col for col in result_columns if col not in SENSITIVE_FIELDS]
+    result_columns = [col for col in result_columns if col not in sensitive_fields]
     
     preview = exact_matches[result_columns].head(50) if result_columns else exact_matches.head(50)
     return {
@@ -329,3 +348,75 @@ def quick_query(df: pd.DataFrame, query: str) -> dict[str, Any]:
         "count": int(len(exact_matches)),
         "rows": [normalize_record(record) for record in preview.to_dict("records")],
     }
+
+
+def batch_query(df: pd.DataFrame, names: list[str], fields: list[str]) -> dict[str, Any]:
+    """批量查询多人信息"""
+    from app.services.sensitive_service import load_sensitive_fields
+    
+    sensitive_fields = load_sensitive_fields()
+    results = []
+    
+    for name in names:
+        name = name.strip()
+        if not name:
+            continue
+        
+        # 查找匹配的人
+        matched = pd.Series([False] * len(df), index=df.index)
+        for column_name in NAME_FIELDS:
+            if column_name in df.columns:
+                matched = matched | df[column_name].astype(str).str.fullmatch(name, case=False, na=False)
+        
+        exact_matches = df[matched]
+        
+        if exact_matches.empty:
+            results.append({
+                "name": name,
+                "found": False,
+                "message": "未找到匹配员工"
+            })
+            continue
+        
+        if len(exact_matches) > 1:
+            results.append({
+                "name": name,
+                "found": False,
+                "message": f"找到{len(exact_matches)}个匹配，请使用更精确的姓名"
+            })
+            continue
+        
+        # 唯一匹配
+        row = exact_matches.iloc[0]
+        record = {}
+        
+        # 基础信息
+        for col in ["姓名", "用户名", "证件姓名"]:
+            if col in df.columns:
+                record[col] = _normalize_text(row[col])
+        
+        # 请求的字段
+        for field in fields:
+            requested_column = fuzzy_resolve_column(df, field)
+            if requested_column and requested_column not in sensitive_fields:
+                record[field] = _normalize_text(row.get(requested_column, ""))
+        
+        results.append({
+            "name": name,
+            "found": True,
+            "data": record
+        })
+    
+    return {
+        "total": len(names),
+        "found": len([r for r in results if r.get("found")]),
+        "results": results
+    }
+
+
+def fuzzy_resolve_column(df: pd.DataFrame, field: str) -> str | None:
+    """模糊匹配列名（兼容版本，返回None而不抛出异常）"""
+    try:
+        return resolve_column(df, field)
+    except ValueError:
+        return None

@@ -5,17 +5,17 @@ import uuid
 from pathlib import Path
 from typing import Any
 
-from app.config import FILES_DB_PATH, UPLOAD_DIR
+from app.config import UPLOAD_DIR, FILES_JSON
 from app.services.excel_service import workbook_metadata
 from app.services.storage import load_json, now_iso, save_json
 
 
 def _load_records() -> dict[str, Any]:
-    return load_json(FILES_DB_PATH, {"currentFileId": None, "files": []})
+    return load_json(FILES_JSON, {"currentFileId": None, "files": []})
 
 
 def _save_records(data: dict[str, Any]) -> None:
-    save_json(FILES_DB_PATH, data)
+    save_json(FILES_JSON, data)
 
 
 def list_recent_files() -> list[dict[str, Any]]:
@@ -79,3 +79,39 @@ def save_upload(temp_path: Path, original_name: str) -> dict[str, Any]:
     data["currentFileId"] = file_id
     _save_records(data)
     return record
+
+
+def delete_file(file_id: str) -> bool:
+    """删除文件"""
+    data = _load_records()
+    file_to_delete = None
+    
+    # 查找文件
+    for item in data["files"]:
+        if item["id"] == file_id:
+            file_to_delete = item
+            break
+    
+    if not file_to_delete:
+        return False
+    
+    # 删除物理文件
+    file_path = Path(file_to_delete["storedPath"])
+    if file_path.exists():
+        try:
+            file_path.unlink()
+        except Exception as e:
+            print(f"删除文件失败: {e}")
+    
+    # 从列表中移除
+    data["files"] = [item for item in data["files"] if item["id"] != file_id]
+    
+    # 如果删除的是当前文件，清空currentFileId
+    if data.get("currentFileId") == file_id:
+        data["currentFileId"] = None
+        # 如果还有其他文件，选择最近使用的
+        if data["files"]:
+            data["currentFileId"] = data["files"][0]["id"]
+    
+    _save_records(data)
+    return True
