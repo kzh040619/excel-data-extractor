@@ -14,7 +14,7 @@ from pydantic import BaseModel, Field
 from app.config import EXPORT_DIR
 from app.services.excel_service import apply_filters, export_excel, load_workbook, preview_table, quick_query
 from app.services.file_service import get_current_file, list_recent_files, refresh_file, save_upload, select_file
-from app.services.task_service import parse_task
+# from app.services.task_service import parse_task  # 暂时注释，v1.0.1功能
 from app.services.llm_handler import get_llm_config, update_llm_config, call_llm, parse_llm_response
 
 
@@ -179,14 +179,15 @@ def quick_query_api(payload: QuickQueryRequest) -> dict[str, Any]:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
-@app.post("/api/tasks/parse")
-def parse_task_api(payload: TaskParseRequest) -> dict[str, Any]:
-    record = _current_or_throw(payload.fileId)
-    available_columns = payload.availableColumns or record.get("columns", [])
-    try:
-        return parse_task(payload.message, available_columns)
-    except Exception as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
+# 暂时注释v1.0.1的parse接口
+# @app.post("/api/tasks/parse")
+# def parse_task_api(payload: TaskParseRequest) -> dict[str, Any]:
+#     record = _current_or_throw(payload.fileId)
+#     available_columns = payload.availableColumns or record.get("columns", [])
+#     try:
+#         return parse_task(payload.message, available_columns)
+#     except Exception as exc:
+#         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @app.post("/api/tasks/execute")

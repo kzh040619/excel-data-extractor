@@ -51,6 +51,7 @@ function App() {
   const [chatMessages, setChatMessages] = useState<{ role: string; content: string; parsed?: ParsedTask }[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
+  const [chatPreviewData, setChatPreviewData] = useState<{ count: number; columns: string[]; rows: Record<string, unknown>[] } | null>(null);
 
   const handleUpload = async (file: File) => {
     try {
@@ -216,12 +217,20 @@ function App() {
       const result = await response.json();
       
       if (result.type === 'query' || result.type === 'export') {
-        // 查询或导出请求 - chat_api已处理导出
+        // 查询或导出请求 - 先显示预览
         setChatMessages(prev => [...prev, { 
           role: 'assistant', 
-          content: `✅ 已导出 ${result.count} 条记录到Excel，点击下方按钮下载。`
+          content: result.explanation || `已找到 ${result.count} 条记录，请预览后决定是否下载。`
         }]);
         
+        // 显示预览表格
+        setChatPreviewData({
+          count: result.count || 0,
+          columns: result.columns || [],
+          rows: result.rows || []
+        });
+        
+        // 保存下载链接（用户点击下载按钮时使用）
         if (result.downloadUrl) {
           setExportDownloadUrl(result.downloadUrl);
         }
@@ -371,24 +380,28 @@ function App() {
           {quickResult && (
             <div className="result-area">
               {quickResult.matchType === 'single' && (
-                <div className="result-card">
-                  <div><b>{quickResult.field}：</b>{quickResult.value}</div>
-                  <div style={{ marginTop: 8 }}>
-                    {Object.entries(quickResult.record || {}).map(([k, v]) => (
-                      <div key={k}><b>{k}：</b>{String(v)}</div>
-                    ))}
-                  </div>
+                <div>
+                  <div style={{ marginBottom: 8, color: '#52c41a' }}>✅ 找到 1 条记录</div>
+                  <Table 
+                    columns={Object.keys(quickResult.record || {}).map(k => ({ title: k, dataIndex: k, key: k }))} 
+                    dataSource={[quickResult.record]} 
+                    rowKey={() => '0'} 
+                    pagination={false} 
+                    size="small"
+                    scroll={{ x: 'max-content' }}
+                  />
                 </div>
               )}
               {quickResult.matchType === 'multiple' && (
                 <div>
-                  <div style={{ marginBottom: 8 }}>找到 {quickResult.count} 条匹配记录</div>
+                  <div style={{ marginBottom: 8 }}>✅ 找到 {quickResult.count} 条匹配记录</div>
                   <Table 
                     columns={Object.keys(quickResult.rows?.[0] || {}).map(k => ({ title: k, dataIndex: k, key: k }))} 
                     dataSource={quickResult.rows} 
                     rowKey={(record, index) => index ?? 0} 
                     pagination={{ pageSize: 10 }} 
-                    size="small" 
+                    size="small"
+                    scroll={{ x: 'max-content' }}
                   />
                 </div>
               )}
@@ -444,10 +457,29 @@ function App() {
               />
               <Button type="primary" onClick={handleChatSend} loading={chatLoading}>发送</Button>
             </div>
+            
+            {/* 预览结果表格 */}
+            {chatPreviewData && chatPreviewData.rows && chatPreviewData.rows.length > 0 && (
+              <div style={{ marginTop: 16 }}>
+                <div style={{ marginBottom: 8, fontWeight: 'bold', color: '#1890ff' }}>
+                  📊 预览结果（共 {chatPreviewData.count} 条，显示前 {chatPreviewData.rows.length} 条）
+                </div>
+                <Table 
+                  columns={chatPreviewData.columns.map(k => ({ title: k, dataIndex: k, key: k, width: 150 }))} 
+                  dataSource={chatPreviewData.rows} 
+                  rowKey={(record, index) => index ?? 0} 
+                  pagination={false}
+                  size="small"
+                  scroll={{ x: 'max-content', y: 300 }}
+                  style={{ marginBottom: 12 }}
+                />
+              </div>
+            )}
+            
             {exportDownloadUrl && (
               <div className="download-link">
                 <a href={exportDownloadUrl} download>
-                  <Button type="link" icon={<DownloadOutlined />}>下载导出文件</Button>
+                  <Button type="primary" icon={<DownloadOutlined />} size="large">下载完整Excel文件（{chatPreviewData?.count || 0} 条记录）</Button>
                 </a>
               </div>
             )}
