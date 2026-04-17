@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import shutil
 import tempfile
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -248,65 +249,83 @@ class ChatRequest(BaseModel):
 @app.post("/api/chat")
 async def chat_api(payload: ChatRequest) -> dict[str, Any]:
     """处理对话请求"""
-    record = _current_or_throw(payload.fileId)
-    available_columns = payload.availableColumns or record.get("columns", [])
+    try:
+        # 立即写日志确认进入函数
+        with open("chat_enter.log", "w", encoding="utf-8") as f:
+            f.write(f"Entered chat_api\n")
+            f.write(f"fileId: {payload.fileId}\n")
+        
+        record = _current_or_throw(payload.fileId)
+        available_columns = payload.availableColumns or record.get("columns", [])
+        
+        # 构建消息历史
+        messages = []
+        for msg in payload.history:
+            messages.append({"role": msg["role"], "content": msg["content"]})
+        messages.append({"role": "user", "content": payload.message})
+        
+        # 调用LLM
+        response = await call_llm(messages, {"availableColumns": available_columns})
+        
+        # 解析响应
+        result = parse_llm_response(response)
+        
+        # 写日志确认解析结果
+        with open("chat_parse.log", "w", encoding="utf-8") as f:
+            f.write(f"result type: {result.get('type')}\n")
+            f.write(f"result keys: {list(result.keys())}\n")
+        
+        if result.get("type") in ["query", "export"]:
+            # 执行查询
+            filters = result.get("filters", [])
+            columns = result.get("columns", [])
+            sort_by = result.get("sortBy")
+            sort_order = result.get("sortOrder", "desc")
+            limit = result.get("limit")
+            
+            df = load_workbook(record["storedPath"], record.get("sheetName"))
+            
+            if filters:
+                filtered = apply_filters(df, filters)
+            else:
+                filtered = df
+            
+            # 应用排序
+            if sort_by:
+                from app.services.excel_service import fuzzy_resolve_column
+                sort_col = fuzzy_resolve_column(filtered, sort_by)
+                if sort_col:
+                    ascending = sort_order.lower() == "asc"
+                    filtered = filtered.sort_values(by=sort_col, ascending=ascending)
+            
+            # 应用limit限制
+            if limit and limit > 0:
+                filtered = filtered.head(limit)
+            
+            export_result = export_excel(filtered, columns)
+            preview_data = preview_table(filtered, columns, limit=50)
+            
+            response_data = {
+                "type": result.get("type", "query"),
+                "filters": result.get("filters", []),
+                "explanation": result.get("explanation", ""),
+                "count": preview_data.get("count", 0),
+                "columns": preview_data.get("columns", []),
+                "rows": preview_data.get("rows", []),
+                "downloadUrl": f"/api/downloads/{export_result['fileName']}",
+            }
+            
+            return response_data
+        
+        # 普通对话
+        return {"type": "chat", "message": response}
     
-    # 构建消息历史
-    messages = []
-    for msg in payload.history:
-        messages.append({"role": msg["role"], "content": msg["content"]})
-    messages.append({"role": "user", "content": payload.message})
-    
-    # 调用LLM
-    response = await call_llm(messages, {"availableColumns": available_columns})
-    
-    # 解析响应
-    result = parse_llm_response(response)
-    
-    if result.get("type") in ["query", "export"]:
-        # 执行查询
-        filters = result.get("filters", [])
-        columns = result.get("columns", [])
-        sort_by = result.get("sortBy")
-        sort_order = result.get("sortOrder", "desc")
-        limit = result.get("limit")
-        
-        df = load_workbook(record["storedPath"], record.get("sheetName"))
-        
-        if filters:
-            filtered = apply_filters(df, filters)
-        else:
-            filtered = df
-        
-        # 应用排序
-        if sort_by:
-            from app.services.excel_service import fuzzy_resolve_column
-            sort_col = fuzzy_resolve_column(filtered, sort_by)
-            if sort_col:
-                ascending = sort_order.lower() == "asc"
-                filtered = filtered.sort_values(by=sort_col, ascending=ascending)
-        
-        # 应用limit限制
-        if limit and limit > 0:
-            filtered = filtered.head(limit)
-        
-        export_result = export_excel(filtered, columns)
-        query_result = {
-            **preview_table(filtered, columns),
-            "fileName": export_result["fileName"],
-            "downloadUrl": f"/api/downloads/{export_result['fileName']}",
-        }
-        
-        return {
-            **result,
-            "count": query_result.get("count", 0),
-            "columns": query_result.get("columns", []),
-            "rows": query_result.get("rows", []),  # 添加rows用于前端预览
-            "downloadUrl": query_result.get("downloadUrl"),
-        }
-    
-    # 普通对话
-    return {"type": "chat", "message": response}
+    except Exception as e:
+        with open("chat_error.log", "w", encoding="utf-8") as f:
+            f.write(f"Error: {str(e)}\n")
+            import traceback
+            f.write(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/api/downloads/{file_name}")
