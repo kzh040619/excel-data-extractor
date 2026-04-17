@@ -384,7 +384,13 @@ function App() {
                   <div style={{ marginBottom: 8, color: '#52c41a' }}>✅ 找到 1 条记录</div>
                   <div className="table-container">
                     <Table 
-                      columns={Object.keys(quickResult.record || {}).map(k => ({ title: k, dataIndex: k, key: k, width: 150 }))} 
+                      columns={Object.keys(quickResult.record || {}).map(k => ({ 
+                        title: k, 
+                        dataIndex: k, 
+                        key: k, 
+                        width: 200,
+                        ellipsis: true
+                      }))} 
                       dataSource={[quickResult.record]} 
                       rowKey={() => '0'} 
                       pagination={false} 
@@ -399,7 +405,13 @@ function App() {
                   <div style={{ marginBottom: 8 }}>✅ 找到 {quickResult.count} 条匹配记录</div>
                   <div className="table-container">
                     <Table 
-                      columns={Object.keys(quickResult.rows?.[0] || {}).map(k => ({ title: k, dataIndex: k, key: k, width: 150 }))} 
+                      columns={Object.keys(quickResult.rows?.[0] || {}).map(k => ({ 
+                        title: k, 
+                        dataIndex: k, 
+                        key: k, 
+                        width: 200,
+                        ellipsis: true
+                      }))} 
                       dataSource={quickResult.rows} 
                       rowKey={(record, index) => index ?? 0} 
                       pagination={{ pageSize: 10 }} 
@@ -470,7 +482,13 @@ function App() {
                 </div>
                 <div className="chat-preview-container">
                   <Table 
-                    columns={chatPreviewData.columns.map(k => ({ title: k, dataIndex: k, key: k, width: 150 }))} 
+                    columns={chatPreviewData.columns.map(k => ({ 
+                      title: k, 
+                      dataIndex: k, 
+                      key: k, 
+                      width: 200,
+                      ellipsis: true
+                    }))} 
                     dataSource={chatPreviewData.rows} 
                     rowKey={(record, index) => index ?? 0} 
                     pagination={false}
