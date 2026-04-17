@@ -44,6 +44,7 @@ function App() {
   const [exportColumns, setExportColumns] = useState<string[]>([]); // 空表示导出所有可用列
   const [exportResult, setExportResult] = useState<{ count: number; columns: string[]; rows: Record<string, unknown>[] } | null>(null);
   const [exportDownloadUrl, setExportDownloadUrl] = useState<string | null>(null);
+  const [customFilters, setCustomFilters] = useState<{ field: string; operator: string; value: string }[]>([]);
 
   const [quickQuery, setQuickQuery] = useState('');
   const [quickResult, setQuickResult] = useState<any>(null);
@@ -52,6 +53,42 @@ function App() {
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
   const [chatPreviewData, setChatPreviewData] = useState<{ count: number; columns: string[]; rows: Record<string, unknown>[] } | null>(null);
+
+  // 快捷模板1：干部名单
+  const handleQuickTemplate1 = () => {
+    setExportColumns(['职级', '在职情况', '用户名', '姓名', '事业部', 'HRBP Head姓名', '入职时间', '汇报上级']);
+    setCustomFilters([
+      { field: '职级', operator: 'gte', value: 'E14' },
+      { field: '员工状态', operator: 'equals', value: '在职' }
+    ]);
+    message.success('已应用"干部名单"模板');
+  };
+
+  // 添加自定义筛选条件
+  const handleAddCustomFilter = () => {
+    setCustomFilters([...customFilters, { field: '', operator: 'equals', value: '' }]);
+  };
+
+  // 移除自定义筛选条件
+  const handleRemoveCustomFilter = (index: number) => {
+    setCustomFilters(customFilters.filter((_, i) => i !== index));
+  };
+
+  // 更新自定义筛选条件
+  const updateCustomFilter = (index: number, key: string, value: string) => {
+    const newFilters = [...customFilters];
+    newFilters[index] = { ...newFilters[index], [key]: value };
+    setCustomFilters(newFilters);
+  };
+
+  // 清空导出设置
+  const handleClearExport = () => {
+    setExportFilters({});
+    setExportColumns([]);
+    setCustomFilters([]);
+    setExportResult(null);
+    setExportDownloadUrl(null);
+  };
 
   const handleUpload = async (file: File) => {
     try {
@@ -80,36 +117,43 @@ function App() {
       message.error('请先上传或选择文件');
       return;
     }
-    const filters: FilterItem[] = Object.entries(exportFilters)
-      .filter(([, value]) => value.trim())
-      .map(([field, value]) => {
-        const trimmed = value.trim();
-        let operator: string = 'equals';
-        let parsedValue = trimmed;
-        
-        // 解析操作符前缀
-        if (trimmed.startsWith('>=')) {
-          operator = 'gte';
-          parsedValue = trimmed.slice(2).trim();
-        } else if (trimmed.startsWith('<=')) {
-          operator = 'lte';
-          parsedValue = trimmed.slice(2).trim();
-        } else if (trimmed.startsWith('>')) {
-          operator = 'gt';
-          parsedValue = trimmed.slice(1).trim();
-        } else if (trimmed.startsWith('<')) {
-          operator = 'lt';
-          parsedValue = trimmed.slice(1).trim();
-        } else if (trimmed.startsWith('=')) {
-          operator = 'equals';
-          parsedValue = trimmed.slice(1).trim();
-        } else if (trimmed.startsWith('包含')) {
-          operator = 'contains';
-          parsedValue = trimmed.slice(2).trim();
-        }
-        
-        return { field, operator, value: parsedValue };
-      });
+    
+    // 合并exportFilters和customFilters
+    const filters: FilterItem[] = [
+      // 处理旧的exportFilters
+      ...Object.entries(exportFilters)
+        .filter(([, value]) => value.trim())
+        .map(([field, value]) => {
+          const trimmed = value.trim();
+          let operator: string = 'equals';
+          let parsedValue = trimmed;
+          
+          if (trimmed.startsWith('>=')) {
+            operator = 'gte';
+            parsedValue = trimmed.slice(2).trim();
+          } else if (trimmed.startsWith('<=')) {
+            operator = 'lte';
+            parsedValue = trimmed.slice(2).trim();
+          } else if (trimmed.startsWith('>')) {
+            operator = 'gt';
+            parsedValue = trimmed.slice(1).trim();
+          } else if (trimmed.startsWith('<')) {
+            operator = 'lt';
+            parsedValue = trimmed.slice(1).trim();
+          } else if (trimmed.startsWith('=')) {
+            operator = 'equals';
+            parsedValue = trimmed.slice(1).trim();
+          } else if (trimmed.startsWith('包含')) {
+            operator = 'contains';
+            parsedValue = trimmed.slice(2).trim();
+          }
+          
+          return { field, operator, value: parsedValue };
+        }),
+      // 添加customFilters
+      ...customFilters.filter(f => f.field && f.value)
+    ];
+    
     try {
       const result = await exportApi.preview({ fileId: current.id, filters, columns: exportColumns });
       setExportResult(result);
@@ -125,35 +169,41 @@ function App() {
       message.error('请先上传或选择文件');
       return;
     }
-    const filters: FilterItem[] = Object.entries(exportFilters)
-      .filter(([, value]) => value.trim())
-      .map(([field, value]) => {
-        const trimmed = value.trim();
-        let operator: string = 'equals';
-        let parsedValue = trimmed;
-        
-        if (trimmed.startsWith('>=')) {
-          operator = 'gte';
-          parsedValue = trimmed.slice(2).trim();
-        } else if (trimmed.startsWith('<=')) {
-          operator = 'lte';
-          parsedValue = trimmed.slice(2).trim();
-        } else if (trimmed.startsWith('>')) {
-          operator = 'gt';
-          parsedValue = trimmed.slice(1).trim();
-        } else if (trimmed.startsWith('<')) {
-          operator = 'lt';
-          parsedValue = trimmed.slice(1).trim();
-        } else if (trimmed.startsWith('=')) {
-          operator = 'equals';
-          parsedValue = trimmed.slice(1).trim();
-        } else if (trimmed.startsWith('包含')) {
-          operator = 'contains';
-          parsedValue = trimmed.slice(2).trim();
-        }
-        
-        return { field, operator, value: parsedValue };
-      });
+    
+    // 合并exportFilters和customFilters
+    const filters: FilterItem[] = [
+      ...Object.entries(exportFilters)
+        .filter(([, value]) => value.trim())
+        .map(([field, value]) => {
+          const trimmed = value.trim();
+          let operator: string = 'equals';
+          let parsedValue = trimmed;
+          
+          if (trimmed.startsWith('>=')) {
+            operator = 'gte';
+            parsedValue = trimmed.slice(2).trim();
+          } else if (trimmed.startsWith('<=')) {
+            operator = 'lte';
+            parsedValue = trimmed.slice(2).trim();
+          } else if (trimmed.startsWith('>')) {
+            operator = 'gt';
+            parsedValue = trimmed.slice(1).trim();
+          } else if (trimmed.startsWith('<')) {
+            operator = 'lt';
+            parsedValue = trimmed.slice(1).trim();
+          } else if (trimmed.startsWith('=')) {
+            operator = 'equals';
+            parsedValue = trimmed.slice(1).trim();
+          } else if (trimmed.startsWith('包含')) {
+            operator = 'contains';
+            parsedValue = trimmed.slice(2).trim();
+          }
+          
+          return { field, operator, value: parsedValue };
+        }),
+      ...customFilters.filter(f => f.field && f.value)
+    ];
+    
     try {
       const result = await exportApi.excel({ fileId: current.id, filters, columns: exportColumns });
       setExportDownloadUrl(result.downloadUrl);
@@ -377,60 +427,122 @@ function App() {
 
         {/* Section 2: Export */}
         <Card className="section-card" title={<span className="section-title">📤 字段导出 Excel</span>}>
-          {/* 固定的常用字段筛选区 */}
-          <div className="filter-grid">
-            {SAFE_FIELDS.map(field => (
-              <div className="filter-item" key={field}>
-                <label>{field}</label>
+          {/* 快捷键按钮 */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ marginBottom: 8, fontWeight: 500, color: '#666' }}>快捷模板：</div>
+            <Space wrap>
+              <Button type="primary" onClick={handleQuickTemplate1}>📋 干部名单</Button>
+              <Button onClick={() => message.info('自定义模板功能开发中')}>⚙️ 自定义1</Button>
+              <Button onClick={() => message.info('自定义模板功能开发中')}>⚙️ 自定义2</Button>
+              <Button onClick={() => message.info('自定义模板功能开发中')}>⚙️ 自定义3</Button>
+            </Space>
+          </div>
+
+          {/* 导入Excel表头字段筛选（下拉框） */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ marginBottom: 8, fontWeight: 500, color: '#666' }}>导出字段选择：</div>
+            <Select
+              mode="multiple"
+              placeholder="选择要导出的字段（默认全部）"
+              value={exportColumns}
+              onChange={vals => setExportColumns(vals as string[])}
+              style={{ width: '100%' }}
+              maxTagCount={5}
+              maxTagPlaceholder={(omitted) => `+${omitted.length}个字段`}
+              options={availableColumns.map(col => ({ label: col, value: col }))}
+              allowClear
+            />
+          </div>
+
+          {/* 自定义筛选字段 */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ marginBottom: 8, fontWeight: 500, color: '#666' }}>
+              自定义筛选条件：
+              <Button 
+                size="small" 
+                type="link" 
+                icon={<span style={{ fontSize: 18 }}>+</span>}
+                onClick={handleAddCustomFilter}
+              >
+                添加条件
+              </Button>
+            </div>
+            {customFilters.map((filter, index) => (
+              <div key={index} style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                <Select
+                  placeholder="字段"
+                  value={filter.field}
+                  onChange={val => updateCustomFilter(index, 'field', val)}
+                  style={{ width: 200 }}
+                  showSearch
+                  options={availableColumns.map(col => ({ label: col, value: col }))}
+                />
+                <Select
+                  placeholder="条件"
+                  value={filter.operator}
+                  onChange={val => updateCustomFilter(index, 'operator', val)}
+                  style={{ width: 120 }}
+                >
+                  <Select.Option value="equals">等于</Select.Option>
+                  <Select.Option value="contains">包含</Select.Option>
+                  <Select.Option value="gt">大于</Select.Option>
+                  <Select.Option value="lt">小于</Select.Option>
+                  <Select.Option value="gte">大于等于</Select.Option>
+                  <Select.Option value="lte">小于等于</Select.Option>
+                </Select>
                 <Input
-                  placeholder="如：=值 / 包含 / <日期"
-                  value={exportFilters[field] || ''}
-                  onChange={e => setExportFilters({ ...exportFilters, [field]: e.target.value })}
+                  placeholder="值"
+                  value={filter.value}
+                  onChange={e => updateCustomFilter(index, 'value', e.target.value)}
+                  style={{ flex: 1 }}
+                />
+                <Button 
+                  danger 
+                  icon={<span>-</span>}
+                  onClick={() => handleRemoveCustomFilter(index)}
                 />
               </div>
             ))}
           </div>
-          {/* 动态导出字段选择区 */}
-          <div style={{ marginTop: 12 }}>
-            <label style={{ fontSize: 13, color: '#555', marginRight: 8 }}>导出字段（可多选，默认全部）：</label>
-            <div style={{ maxHeight: 120, overflowY: 'auto', border: '1px solid #d9d9d9', borderRadius: 6, padding: 8 }}>
-              <Checkbox.Group
-                value={exportColumns}
-                onChange={vals => setExportColumns(vals as string[])}
-                options={availableColumns.map(col => ({ label: col, value: col }))}
-              />
-            </div>
-            <div style={{ marginTop: 8 }}>
-              <Button size="small" onClick={() => setExportColumns(availableColumns)}>全选</Button>
-              <Button size="small" style={{ marginLeft: 8 }} onClick={() => setExportColumns([])}>清空</Button>
-            </div>
-          </div>
+
+          {/* 操作按钮 */}
           <div className="action-bar">
             <Button type="primary" icon={<SearchOutlined />} onClick={handleExportPreview}>预览结果</Button>
             <Button icon={<DownloadOutlined />} onClick={handleExportExcel}>导出 Excel</Button>
-            <Button onClick={() => { setExportFilters({}); setExportColumns([]); setExportResult(null); setExportDownloadUrl(null); }}>清空</Button>
+            <Button onClick={handleClearExport}>清空</Button>
           </div>
+
+          {/* 结果展示 */}
           {exportResult && (
             <div className="result-area">
               <div style={{ marginBottom: 8, color: '#666' }}>共 {exportResult.count} 条记录</div>
               <Table 
-                columns={exportResult.columns.map(col => ({ title: col, dataIndex: col, key: col, ellipsis: true, width: 150 }))} 
+                columns={exportResult.columns.map(col => ({ 
+                  title: col, 
+                  dataIndex: col, 
+                  key: col, 
+                  ellipsis: true, 
+                  width: 200 
+                }))} 
                 dataSource={exportResult.rows} 
                 rowKey={(record, index) => index ?? 0} 
                 pagination={{ pageSize: 10 }} 
                 size="small" 
-                scroll={{ x: 'max-content' }}
+                scroll={{ x: true }}
               />
               {exportDownloadUrl && (
-                <div className="download-link">
+                <div className="download-link" style={{ marginTop: 16, textAlign: 'center' }}>
                   <a href={exportDownloadUrl} download>
-                    <Button type="link" icon={<DownloadOutlined />}>下载 Excel 文件</Button>
+                    <Button type="primary" icon={<DownloadOutlined />} size="large">
+                      💾 下载Excel文件
+                    </Button>
                   </a>
                 </div>
               )}
             </div>
           )}
         </Card>
+
 
         {/* Section 3: Natural Language Task */}
         <Card className="section-card" title={
