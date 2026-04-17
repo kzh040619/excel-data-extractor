@@ -48,6 +48,7 @@ function App() {
 
   const [quickQuery, setQuickQuery] = useState('');
   const [quickResult, setQuickResult] = useState<any>(null);
+  const [quickViewMode, setQuickViewMode] = useState<'simple' | 'full'>('simple');
 
   const [chatMessages, setChatMessages] = useState<{ role: string; content: string; parsed?: ParsedTask }[]>([]);
   const [chatInput, setChatInput] = useState('');
@@ -369,31 +370,55 @@ function App() {
           </div>
           <div className="quick-hints">
             <span style={{ fontSize: 13, color: '#999', lineHeight: '24px' }}>快捷指令：</span>
-            {['hrbp', '合同主体', '合同结束日期', '社保地', '工作地'].map(hint => (
-              <span
+            {['HRBP', '合同主体', '合同结束日期', '社保地', '工作地'].map(hint => (
+              <Button
                 key={hint}
-                className="ant-tag"
-                style={{ cursor: 'pointer', margin: '4px' }}
-                onClick={() => setQuickQuery(hint + ' ')}
+                size="small"
+                type="primary"
+                ghost
+                style={{ margin: '4px' }}
+                onClick={() => setQuickQuery(prev => prev + ' ' + hint)}
               >
                 {hint}
-              </span>
+              </Button>
             ))}
+          </div>
           </div>
           {quickResult && (
             <div className="result-area">
               {quickResult.matchType === 'single' && (
                 <div>
-                  <div style={{ marginBottom: 8, color: '#52c41a' }}>✅ 找到 1 条记录</div>
+                  <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#52c41a' }}>✅ 找到 1 条记录</span>
+                    <Space>
+                      <span style={{ fontSize: 13, color: '#666' }}>显示模式：</span>
+                      <Button 
+                        size="small" 
+                        type={quickViewMode === 'simple' ? 'primary' : 'default'}
+                        onClick={() => setQuickViewMode('simple')}
+                      >
+                        简要信息
+                      </Button>
+                      <Button 
+                        size="small" 
+                        type={quickViewMode === 'full' ? 'primary' : 'default'}
+                        onClick={() => setQuickViewMode('full')}
+                      >
+                        全部字段
+                      </Button>
+                    </Space>
+                  </div>
                   <div className="table-container">
                     <Table 
-                      columns={Object.keys(quickResult.record || {}).map(k => ({ 
-                        title: k, 
-                        dataIndex: k, 
-                        key: k, 
-                        width: 200,
-                        ellipsis: true
-                      }))} 
+                      columns={Object.keys(quickResult.record || {})
+                        .filter(k => quickViewMode === 'full' || ['姓名', '用户名', '证件姓名', 'HRBP姓名', '事业部', '职级', '员工状态'].includes(k))
+                        .map(k => ({ 
+                          title: k, 
+                          dataIndex: k, 
+                          key: k, 
+                          width: 200,
+                          ellipsis: true
+                        }))} 
                       dataSource={[quickResult.record]} 
                       rowKey={() => '0'} 
                       pagination={false} 
@@ -405,16 +430,37 @@ function App() {
               )}
               {quickResult.matchType === 'multiple' && (
                 <div>
-                  <div style={{ marginBottom: 8 }}>✅ 找到 {quickResult.count} 条匹配记录</div>
+                  <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#52c41a' }}>✅ 找到 {quickResult.count} 条匹配记录</span>
+                    <Space>
+                      <span style={{ fontSize: 13, color: '#666' }}>显示模式：</span>
+                      <Button 
+                        size="small" 
+                        type={quickViewMode === 'simple' ? 'primary' : 'default'}
+                        onClick={() => setQuickViewMode('simple')}
+                      >
+                        简要信息
+                      </Button>
+                      <Button 
+                        size="small" 
+                        type={quickViewMode === 'full' ? 'primary' : 'default'}
+                        onClick={() => setQuickViewMode('full')}
+                      >
+                        全部字段
+                      </Button>
+                    </Space>
+                  </div>
                   <div className="table-container">
                     <Table 
-                      columns={Object.keys(quickResult.rows?.[0] || {}).map(k => ({ 
-                        title: k, 
-                        dataIndex: k, 
-                        key: k, 
-                        width: 200,
-                        ellipsis: true
-                      }))} 
+                      columns={Object.keys(quickResult.rows?.[0] || {})
+                        .filter(k => quickViewMode === 'full' || ['姓名', '用户名', '证件姓名', 'HRBP姓名', '事业部', '职级', '员工状态'].includes(k))
+                        .map(k => ({ 
+                          title: k, 
+                          dataIndex: k, 
+                          key: k, 
+                          width: 200,
+                          ellipsis: true
+                        }))} 
                       dataSource={quickResult.rows} 
                       rowKey={(record, index) => index ?? 0} 
                       pagination={{ pageSize: 10 }} 
