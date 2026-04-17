@@ -317,12 +317,9 @@ def quick_query(df: pd.DataFrame, query: str) -> dict[str, Any]:
         
         row = exact_matches.iloc[0]
         
-        # 只返回基础信息 + 请求的字段
-        result_columns = [col for col in base_columns if col in df.columns]
-        if requested_column and requested_column not in result_columns:
-            result_columns.append(requested_column)
-        
-        safe_row = {col: row[col] for col in result_columns if col in df.columns and col not in sensitive_fields}
+        # 返回所有字段（过滤敏感字段）
+        all_columns = [col for col in df.columns if col not in sensitive_fields]
+        safe_row = {col: row[col] for col in all_columns if col in df.columns}
         
         return {
             "matchType": "single",
@@ -331,22 +328,18 @@ def quick_query(df: pd.DataFrame, query: str) -> dict[str, Any]:
             "record": normalize_record(safe_row),
         }
     
-    # 多条匹配时，返回基础信息 + 请求的字段
+    # 多条匹配时，返回所有字段（过滤敏感字段）
     from app.services.sensitive_service import load_sensitive_fields
     sensitive_fields = load_sensitive_fields()
     
-    result_columns = [col for col in base_columns if col in df.columns]
-    if requested_column and requested_column not in result_columns:
-        result_columns.append(requested_column)
-    
     # 过滤敏感字段
-    result_columns = [col for col in result_columns if col not in sensitive_fields]
+    all_columns = [col for col in df.columns if col not in sensitive_fields]
     
-    preview = exact_matches[result_columns].head(50) if result_columns else exact_matches.head(50)
+    # 返回所有匹配记录，不限制数量
     return {
         "matchType": "multiple",
         "count": int(len(exact_matches)),
-        "rows": [normalize_record(record) for record in preview.to_dict("records")],
+        "rows": [normalize_record(record) for record in exact_matches[all_columns].to_dict("records")],
     }
 
 
