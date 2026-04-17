@@ -337,23 +337,19 @@ function App() {
           <Button icon={<UploadOutlined />} size="small">上传</Button>
         </Upload>
         {files.length > 0 && (
-          <Select
-            size="small"
-            style={{ width: 200 }}
-            placeholder="选择历史文件"
-            value={current?.id}
-            onChange={handleSelectFile}
-            options={files.map(f => ({ value: f.id, label: f.fileName }))}
-          />
+          <>
+            <span style={{ fontSize: 13, color: '#888', marginLeft: 16 }}>历史记录：</span>
+            <Select
+              size="small"
+              style={{ width: 180 }}
+              placeholder="选择历史文件"
+              value={current?.id}
+              onChange={handleSelectFile}
+              options={files.map(f => ({ value: f.id, label: f.fileName }))}
+            />
+          </>
         )}
         <Button icon={<ReloadOutlined />} size="small" onClick={() => { refresh(); refreshRecent(); }}>刷新</Button>
-        
-        {/* 模块说明 */}
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: 24, fontSize: 13, color: '#666' }}>
-          <span>🔍 <b>信息查询：</b>快速查找单个员工完整信息</span>
-          <span>📤 <b>字段导出：</b>按条件筛选并导出Excel</span>
-          <span>💬 <b>自然语言：</b>AI对话生成数据报表</span>
-        </div>
       </div>
 
       <div className="main-content">
