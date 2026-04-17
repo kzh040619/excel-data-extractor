@@ -49,6 +49,7 @@ function App() {
   const [quickQuery, setQuickQuery] = useState('');
   const [quickResult, setQuickResult] = useState<any>(null);
   const [quickViewMode, setQuickViewMode] = useState<'simple' | 'full'>('simple');
+  const [queriedFields, setQueriedFields] = useState<string[]>([]);
 
   const [chatMessages, setChatMessages] = useState<{ role: string; content: string; parsed?: ParsedTask }[]>([]);
   const [chatInput, setChatInput] = useState('');
@@ -220,6 +221,12 @@ function App() {
       return;
     }
     if (!quickQuery.trim()) return;
+    
+    // 解析查询字段（提取除姓名外的字段）
+    const parts = quickQuery.trim().split(/\s+/);
+    const fields = parts.slice(1).filter(p => p && !p.includes('张三') && !p.includes('李四'));
+    setQueriedFields(fields);
+    
     try {
       const result = await queryApi.quick({ fileId: current.id, query: quickQuery });
       setQuickResult(result);
@@ -367,7 +374,7 @@ function App() {
               onPressEnter={handleQuickQuery}
             />
             <Button type="primary" icon={<SearchOutlined />} onClick={handleQuickQuery}>查询</Button>
-            <Button onClick={() => { setQuickQuery(''); setQuickResult(null); setQuickViewMode('simple'); }}>清空</Button>
+            <Button onClick={() => { setQuickQuery(''); setQuickResult(null); setQuickViewMode('simple'); setQueriedFields([]); }}>清空</Button>
           </div>
           <div className="quick-hints">
             <span style={{ fontSize: 13, color: '#999', lineHeight: '24px' }}>快捷指令：</span>
@@ -411,7 +418,15 @@ function App() {
                   <div className="table-container">
                     <Table 
                       columns={Object.keys(quickResult.record || {})
-                        .filter(k => quickViewMode === 'full' || ['姓名', '用户名', '证件姓名', 'HRBP姓名', '事业部', '职级', '员工状态'].includes(k))
+                        .filter(k => {
+                          if (quickViewMode === 'full') return true;
+                          // 简要模式：显示基础字段 + 用户查询的字段
+                          const baseFields = ['姓名', '用户名', '证件姓名'];
+                          const queryFields = queriedFields.length > 0 
+                            ? queriedFields 
+                            : ['HRBP姓名', '事业部', '职级', '员工状态'];
+                          return baseFields.includes(k) || queryFields.some(qf => k.toLowerCase().includes(qf.toLowerCase()));
+                        })
                         .map(k => ({ 
                           title: k, 
                           dataIndex: k, 
@@ -453,7 +468,14 @@ function App() {
                   <div className="table-container">
                     <Table 
                       columns={Object.keys(quickResult.rows?.[0] || {})
-                        .filter(k => quickViewMode === 'full' || ['姓名', '用户名', '证件姓名', 'HRBP姓名', '事业部', '职级', '员工状态'].includes(k))
+                        .filter(k => {
+                          if (quickViewMode === 'full') return true;
+                          const baseFields = ['姓名', '用户名', '证件姓名'];
+                          const queryFields = queriedFields.length > 0 
+                            ? queriedFields 
+                            : ['HRBP姓名', '事业部', '职级', '员工状态'];
+                          return baseFields.includes(k) || queryFields.some(qf => k.toLowerCase().includes(qf.toLowerCase()));
+                        })
                         .map(k => ({ 
                           title: k, 
                           dataIndex: k, 
