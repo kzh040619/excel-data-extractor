@@ -271,7 +271,7 @@ function App() {
     <div className="app-container">
       {/* Top Bar */}
       <div className="top-bar">
-        <span className="file-label">当前文件：</span>
+        <span className="file-label">数据源：</span>
         {loading ? (
           <span>加载中...</span>
         ) : current ? (
@@ -296,64 +296,7 @@ function App() {
       </div>
 
       <div className="main-content">
-        {/* Section 1: Export */}
-        <Card className="section-card" title={<span className="section-title">📤 字段导出 Excel</span>}>
-          {/* 固定的常用字段筛选区 */}
-          <div className="filter-grid">
-            {SAFE_FIELDS.map(field => (
-              <div className="filter-item" key={field}>
-                <label>{field}</label>
-                <Input
-                  placeholder="如：=值 / 包含 / <日期"
-                  value={exportFilters[field] || ''}
-                  onChange={e => setExportFilters({ ...exportFilters, [field]: e.target.value })}
-                />
-              </div>
-            ))}
-          </div>
-          {/* 动态导出字段选择区 */}
-          <div style={{ marginTop: 12 }}>
-            <label style={{ fontSize: 13, color: '#555', marginRight: 8 }}>导出字段（可多选，默认全部）：</label>
-            <div style={{ maxHeight: 120, overflowY: 'auto', border: '1px solid #d9d9d9', borderRadius: 6, padding: 8 }}>
-              <Checkbox.Group
-                value={exportColumns}
-                onChange={vals => setExportColumns(vals as string[])}
-                options={availableColumns.map(col => ({ label: col, value: col }))}
-              />
-            </div>
-            <div style={{ marginTop: 8 }}>
-              <Button size="small" onClick={() => setExportColumns(availableColumns)}>全选</Button>
-              <Button size="small" style={{ marginLeft: 8 }} onClick={() => setExportColumns([])}>清空</Button>
-            </div>
-          </div>
-          <div className="action-bar">
-            <Button type="primary" icon={<SearchOutlined />} onClick={handleExportPreview}>预览结果</Button>
-            <Button icon={<DownloadOutlined />} onClick={handleExportExcel}>导出 Excel</Button>
-            <Button onClick={() => { setExportFilters({}); setExportColumns([]); setExportResult(null); setExportDownloadUrl(null); }}>清空</Button>
-          </div>
-          {exportResult && (
-            <div className="result-area">
-              <div style={{ marginBottom: 8, color: '#666' }}>共 {exportResult.count} 条记录</div>
-              <Table 
-                columns={exportResult.columns.map(col => ({ title: col, dataIndex: col, key: col, ellipsis: true, width: 150 }))} 
-                dataSource={exportResult.rows} 
-                rowKey={(record, index) => index ?? 0} 
-                pagination={{ pageSize: 10 }} 
-                size="small" 
-                scroll={{ x: 'max-content' }}
-              />
-              {exportDownloadUrl && (
-                <div className="download-link">
-                  <a href={exportDownloadUrl} download>
-                    <Button type="link" icon={<DownloadOutlined />}>下载 Excel 文件</Button>
-                  </a>
-                </div>
-              )}
-            </div>
-          )}
-        </Card>
-
-        {/* Section 2: Quick Query */}
+        {/* Section 1: Quick Query */}
         <Card className="section-card" title={<span className="section-title">🔍 信息查询</span>}>
           <div className="query-input-row">
             <Input
@@ -423,6 +366,63 @@ function App() {
               )}
               {quickResult.matchType === 'none' && (
                 <div className="result-card" style={{ color: '#999' }}>{quickResult.message}</div>
+              )}
+            </div>
+          )}
+        </Card>
+
+        {/* Section 2: Export */}
+        <Card className="section-card" title={<span className="section-title">📤 字段导出 Excel</span>}>
+          {/* 固定的常用字段筛选区 */}
+          <div className="filter-grid">
+            {SAFE_FIELDS.map(field => (
+              <div className="filter-item" key={field}>
+                <label>{field}</label>
+                <Input
+                  placeholder="如：=值 / 包含 / <日期"
+                  value={exportFilters[field] || ''}
+                  onChange={e => setExportFilters({ ...exportFilters, [field]: e.target.value })}
+                />
+              </div>
+            ))}
+          </div>
+          {/* 动态导出字段选择区 */}
+          <div style={{ marginTop: 12 }}>
+            <label style={{ fontSize: 13, color: '#555', marginRight: 8 }}>导出字段（可多选，默认全部）：</label>
+            <div style={{ maxHeight: 120, overflowY: 'auto', border: '1px solid #d9d9d9', borderRadius: 6, padding: 8 }}>
+              <Checkbox.Group
+                value={exportColumns}
+                onChange={vals => setExportColumns(vals as string[])}
+                options={availableColumns.map(col => ({ label: col, value: col }))}
+              />
+            </div>
+            <div style={{ marginTop: 8 }}>
+              <Button size="small" onClick={() => setExportColumns(availableColumns)}>全选</Button>
+              <Button size="small" style={{ marginLeft: 8 }} onClick={() => setExportColumns([])}>清空</Button>
+            </div>
+          </div>
+          <div className="action-bar">
+            <Button type="primary" icon={<SearchOutlined />} onClick={handleExportPreview}>预览结果</Button>
+            <Button icon={<DownloadOutlined />} onClick={handleExportExcel}>导出 Excel</Button>
+            <Button onClick={() => { setExportFilters({}); setExportColumns([]); setExportResult(null); setExportDownloadUrl(null); }}>清空</Button>
+          </div>
+          {exportResult && (
+            <div className="result-area">
+              <div style={{ marginBottom: 8, color: '#666' }}>共 {exportResult.count} 条记录</div>
+              <Table 
+                columns={exportResult.columns.map(col => ({ title: col, dataIndex: col, key: col, ellipsis: true, width: 150 }))} 
+                dataSource={exportResult.rows} 
+                rowKey={(record, index) => index ?? 0} 
+                pagination={{ pageSize: 10 }} 
+                size="small" 
+                scroll={{ x: 'max-content' }}
+              />
+              {exportDownloadUrl && (
+                <div className="download-link">
+                  <a href={exportDownloadUrl} download>
+                    <Button type="link" icon={<DownloadOutlined />}>下载 Excel 文件</Button>
+                  </a>
+                </div>
               )}
             </div>
           )}
