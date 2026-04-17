@@ -195,6 +195,10 @@ function App() {
     setChatInput('');
     setChatMessages(prev => [...prev, { role: 'user', content: userMsg }]);
     setChatLoading(true);
+    
+    // 清空之前的预览数据
+    setChatPreviewData(null);
+    setExportDownloadUrl(null);
 
     try {
       // 调用后端LLM接口
@@ -217,10 +221,10 @@ function App() {
       const result = await response.json();
       
       if (result.type === 'query' || result.type === 'export') {
-        // 查询或导出请求 - 先显示预览
+        // 查询或导出请求 - 显示预览
         setChatMessages(prev => [...prev, { 
           role: 'assistant', 
-          content: result.explanation || `已找到 ${result.count} 条记录，请预览后决定是否下载。`
+          content: result.explanation || `✅ 已找到 ${result.count} 条记录，请查看下方预览表格。满意后可点击下载按钮。`
         }]);
         
         // 显示预览表格
@@ -230,7 +234,7 @@ function App() {
           rows: result.rows || []
         });
         
-        // 保存下载链接（用户点击下载按钮时使用）
+        // 后端已生成下载链接，暂存
         if (result.downloadUrl) {
           setExportDownloadUrl(result.downloadUrl);
         }
@@ -496,16 +500,17 @@ function App() {
                     scroll={{ x: true, y: 350 }}
                   />
                 </div>
-              </div>
-            )}
-            
-            {exportDownloadUrl && (
-              <div className="download-link" style={{ marginTop: 16, textAlign: 'center' }}>
-                <a href={exportDownloadUrl} download>
-                  <Button type="primary" icon={<DownloadOutlined />} size="large">
-                    💾 下载完整Excel文件（{chatPreviewData?.count || 0} 条记录）
-                  </Button>
-                </a>
+                
+                {/* 下载按钮 */}
+                {exportDownloadUrl && (
+                  <div style={{ marginTop: 16, textAlign: 'center' }}>
+                    <a href={exportDownloadUrl} download>
+                      <Button type="primary" icon={<DownloadOutlined />} size="large">
+                        💾 下载Excel文件（{chatPreviewData?.count || 0} 条记录）
+                      </Button>
+                    </a>
+                  </div>
+                )}
               </div>
             )}
           </div>
