@@ -14,7 +14,7 @@ import {
 } from './api';
 
 const SAFE_FIELDS = [
-  '用户名', '姓名', '证件姓名', '所属部门', '合同主体',
+  '用户名', '姓名', '证件姓名', '事业部', '合同主体',
   '劳动合同/协议开始日', '劳动合同/协议结束日期', '工时性质', '社保缴纳地', '工作地点名称', 'HRBP姓名', 'HRBP Head姓名',
 ];
 
@@ -450,7 +450,6 @@ function App() {
           <div style={{ padding: 12, background: llmConfig.configured ? '#f6ffed' : '#fff7e6', borderRadius: 8, marginBottom: 12, fontSize: 13 }}>
             <b>{llmConfig.configured ? '✅ AI助手已就绪' : '⚠️ 请先配置大模型API'}</b>
             <br/>• 支持自然语言对话和智能查询
-            <br/>• 推荐使用 DeepSeek（免费额度）
           </div>
           
           <div className="chat-area">

@@ -100,7 +100,7 @@ async def call_llm(messages: list[dict], context: dict | None = None) -> str:
 
 字段别名说明：
 - hrbp / HRBP → HRBP姓名
-- 业务部/部门/事业部 → 所属部门
+- 业务部/部门/所属部门 → 事业部
 - 合同结束日期 → 劳动合同/协议结束日期
 - 合同主体 → 劳动合同主体"""
 
