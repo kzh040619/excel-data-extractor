@@ -300,7 +300,8 @@ async def chat_api(payload: ChatRequest) -> dict[str, Any]:
         return {
             **result,
             "count": query_result.get("count", 0),
-            "columns": query_result.get("columns", columns),
+            "columns": query_result.get("columns", []),
+            "rows": query_result.get("rows", []),  # 添加rows用于前端预览
             "downloadUrl": query_result.get("downloadUrl"),
         }
     

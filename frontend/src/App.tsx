@@ -382,27 +382,31 @@ function App() {
               {quickResult.matchType === 'single' && (
                 <div>
                   <div style={{ marginBottom: 8, color: '#52c41a' }}>✅ 找到 1 条记录</div>
-                  <Table 
-                    columns={Object.keys(quickResult.record || {}).map(k => ({ title: k, dataIndex: k, key: k }))} 
-                    dataSource={[quickResult.record]} 
-                    rowKey={() => '0'} 
-                    pagination={false} 
-                    size="small"
-                    scroll={{ x: 'max-content' }}
-                  />
+                  <div className="table-container">
+                    <Table 
+                      columns={Object.keys(quickResult.record || {}).map(k => ({ title: k, dataIndex: k, key: k, width: 150 }))} 
+                      dataSource={[quickResult.record]} 
+                      rowKey={() => '0'} 
+                      pagination={false} 
+                      size="small"
+                      scroll={{ x: true }}
+                    />
+                  </div>
                 </div>
               )}
               {quickResult.matchType === 'multiple' && (
                 <div>
                   <div style={{ marginBottom: 8 }}>✅ 找到 {quickResult.count} 条匹配记录</div>
-                  <Table 
-                    columns={Object.keys(quickResult.rows?.[0] || {}).map(k => ({ title: k, dataIndex: k, key: k }))} 
-                    dataSource={quickResult.rows} 
-                    rowKey={(record, index) => index ?? 0} 
-                    pagination={{ pageSize: 10 }} 
-                    size="small"
-                    scroll={{ x: 'max-content' }}
-                  />
+                  <div className="table-container">
+                    <Table 
+                      columns={Object.keys(quickResult.rows?.[0] || {}).map(k => ({ title: k, dataIndex: k, key: k, width: 150 }))} 
+                      dataSource={quickResult.rows} 
+                      rowKey={(record, index) => index ?? 0} 
+                      pagination={{ pageSize: 10 }} 
+                      size="small"
+                      scroll={{ x: true }}
+                    />
+                  </div>
                 </div>
               )}
               {quickResult.matchType === 'none' && (
@@ -464,22 +468,25 @@ function App() {
                 <div style={{ marginBottom: 8, fontWeight: 'bold', color: '#1890ff' }}>
                   📊 预览结果（共 {chatPreviewData.count} 条，显示前 {chatPreviewData.rows.length} 条）
                 </div>
-                <Table 
-                  columns={chatPreviewData.columns.map(k => ({ title: k, dataIndex: k, key: k, width: 150 }))} 
-                  dataSource={chatPreviewData.rows} 
-                  rowKey={(record, index) => index ?? 0} 
-                  pagination={false}
-                  size="small"
-                  scroll={{ x: 'max-content', y: 300 }}
-                  style={{ marginBottom: 12 }}
-                />
+                <div className="chat-preview-container">
+                  <Table 
+                    columns={chatPreviewData.columns.map(k => ({ title: k, dataIndex: k, key: k, width: 150 }))} 
+                    dataSource={chatPreviewData.rows} 
+                    rowKey={(record, index) => index ?? 0} 
+                    pagination={false}
+                    size="small"
+                    scroll={{ x: true, y: 350 }}
+                  />
+                </div>
               </div>
             )}
             
             {exportDownloadUrl && (
-              <div className="download-link">
+              <div className="download-link" style={{ marginTop: 16, textAlign: 'center' }}>
                 <a href={exportDownloadUrl} download>
-                  <Button type="primary" icon={<DownloadOutlined />} size="large">下载完整Excel文件（{chatPreviewData?.count || 0} 条记录）</Button>
+                  <Button type="primary" icon={<DownloadOutlined />} size="large">
+                    💾 下载完整Excel文件（{chatPreviewData?.count || 0} 条记录）
+                  </Button>
                 </a>
               </div>
             )}

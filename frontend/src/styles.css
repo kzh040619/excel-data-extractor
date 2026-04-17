@@ -227,3 +227,28 @@ body {
 .download-link {
   margin-top: 8px;
 }
+
+/* 表格容器 - 确保横向滚动 */
+.table-container {
+  overflow-x: auto;
+  border: 1px solid #f0f0f0;
+  border-radius: 4px;
+  max-width: 100%;
+}
+
+.table-container .ant-table {
+  min-width: 100%;
+}
+
+.table-container .ant-table-wrapper {
+  overflow: visible;
+}
+
+/* 聊天预览表格容器 */
+.chat-preview-container {
+  overflow-x: auto;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+  max-height: 400px;
+  margin-bottom: 16px;
+}
