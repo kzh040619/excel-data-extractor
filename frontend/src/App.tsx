@@ -367,6 +367,7 @@ function App() {
               onPressEnter={handleQuickQuery}
             />
             <Button type="primary" icon={<SearchOutlined />} onClick={handleQuickQuery}>查询</Button>
+            <Button onClick={() => { setQuickQuery(''); setQuickResult(null); setQuickViewMode('simple'); }}>清空</Button>
           </div>
           <div className="quick-hints">
             <span style={{ fontSize: 13, color: '#999', lineHeight: '24px' }}>快捷指令：</span>
