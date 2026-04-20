@@ -428,13 +428,23 @@ function App() {
                           if (quickViewMode === 'full') return true;
                           // 简要模式：显示基础字段 + 用户查询的字段（精确匹配）
                           const baseFields = ['姓名', '用户名', '证件姓名'];
+                          // 敏感字段（不应在简要信息中显示）
+                          const sensitiveFields = ['实际离职原因', '离职日期', '离职类型'];
                           if (queriedFields.length > 0) {
-                            // 用户指定了字段，只显示基础字段 + 精确匹配的字段
+                            // 用户指定了字段，精确匹配
                             const matched = queriedFields.some(qf => {
                               const qfLower = qf.toLowerCase();
-                              // 优先完全匹配，其次包含匹配（但字段名必须包含完整查询词）
-                              return k === qf || k.toLowerCase() === qfLower || 
-                                     (k.toLowerCase().includes(qfLower) && qfLower.length >= 2);
+                              // 精确匹配（允许大小写差异）
+                              if (k.toLowerCase() === qfLower) return true;
+                              // 特殊处理：hrbp -> HRBP姓名/HRBP用户名（但不包括HRBP Head）
+                              if (qfLower === 'hrbp') {
+                                return k === 'HRBP姓名' || k === 'HRBP用户名';
+                              }
+                              // 包含匹配（但排除敏感字段和过长匹配）
+                              if (k.includes(qf) && !sensitiveFields.some(s => k.includes(s))) {
+                                return qfLower.length >= 2 && k.length < qf.length + 10;
+                              }
+                              return false;
                             });
                             return baseFields.includes(k) || matched;
                           } else {
@@ -487,11 +497,18 @@ function App() {
                         .filter(k => {
                           if (quickViewMode === 'full') return true;
                           const baseFields = ['姓名', '用户名', '证件姓名'];
+                          const sensitiveFields = ['实际离职原因', '离职日期', '离职类型'];
                           if (queriedFields.length > 0) {
                             const matched = queriedFields.some(qf => {
                               const qfLower = qf.toLowerCase();
-                              return k === qf || k.toLowerCase() === qfLower || 
-                                     (k.toLowerCase().includes(qfLower) && qfLower.length >= 2);
+                              if (k.toLowerCase() === qfLower) return true;
+                              if (qfLower === 'hrbp') {
+                                return k === 'HRBP姓名' || k === 'HRBP用户名';
+                              }
+                              if (k.includes(qf) && !sensitiveFields.some(s => k.includes(s))) {
+                                return qfLower.length >= 2 && k.length < qf.length + 10;
+                              }
+                              return false;
                             });
                             return baseFields.includes(k) || matched;
                           } else {
