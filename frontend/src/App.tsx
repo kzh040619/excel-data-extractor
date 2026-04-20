@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Card, Checkbox, Input, message, Select, Space, Table, Upload } from 'antd';
-import { UploadOutlined, DownloadOutlined, SearchOutlined, ReloadOutlined, SettingOutlined } from '@ant-design/icons';
+import { UploadOutlined, DownloadOutlined, SearchOutlined, ReloadOutlined, SettingOutlined, CloseOutlined } from '@ant-design/icons';
 import {
   FileInfo,
   FilterItem,
@@ -721,8 +721,17 @@ function App() {
             {/* 预览结果表格 */}
             {chatPreviewData && chatPreviewData.rows && chatPreviewData.rows.length > 0 && (
               <div style={{ marginTop: 16 }}>
-                <div style={{ marginBottom: 8, fontWeight: 'bold', color: '#1890ff' }}>
-                  📊 预览结果（共 {chatPreviewData.count} 条，显示前 {chatPreviewData.rows.length} 条）
+                <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontWeight: 'bold', color: '#1890ff' }}>
+                    📊 预览结果（共 {chatPreviewData.count} 条，显示前 {chatPreviewData.rows.length} 条）
+                  </span>
+                  <Button 
+                    size="small" 
+                    icon={<CloseOutlined />}
+                    onClick={() => { setChatPreviewData(null); setExportDownloadUrl(null); }}
+                  >
+                    清除预览
+                  </Button>
                 </div>
                 <div className="chat-preview-container">
                   <Table 

@@ -302,6 +302,13 @@ async def chat_api(payload: ChatRequest) -> dict[str, Any]:
             if limit and limit > 0:
                 filtered = filtered.head(limit)
             
+            # 检查结果是否为空
+            if len(filtered) == 0:
+                return {
+                    "type": "chat",
+                    "message": "❌ 未查询到符合条件的数据。\n\n请检查筛选条件是否正确，或尝试调整查询条件。\n\n💡 提示：\n• 确认字段名拼写正确\n• 检查筛选值是否存在\n• 尝试使用模糊匹配（如部分部门名称）"
+                }
+            
             export_result = export_excel(filtered, columns)
             preview_data = preview_table(filtered, columns, limit=50)
             
