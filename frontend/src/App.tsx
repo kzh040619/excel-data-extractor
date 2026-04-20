@@ -426,30 +426,29 @@ function App() {
                       columns={Object.keys(quickResult.record || {})
                         .filter(k => {
                           if (quickViewMode === 'full') return true;
-                          // 简要模式：显示基础字段 + 用户查询的字段（精确匹配）
                           const baseFields = ['姓名', '用户名', '证件姓名'];
-                          // 敏感字段（不应在简要信息中显示）
                           const sensitiveFields = ['实际离职原因', '离职日期', '离职类型'];
                           if (queriedFields.length > 0) {
-                            // 用户指定了字段，精确匹配
                             const matched = queriedFields.some(qf => {
                               const qfLower = qf.toLowerCase();
-                              // 精确匹配（允许大小写差异）
-                              if (k.toLowerCase() === qfLower) return true;
-                              // 特殊处理：hrbp -> HRBP姓名/HRBP用户名（但不包括HRBP Head）
+                              // 特殊处理：hrbp -> HRBP姓名/HRBP用户名（不含HRBP Head）
                               if (qfLower === 'hrbp') {
                                 return k === 'HRBP姓名' || k === 'HRBP用户名';
                               }
-                              // 包含匹配（但排除敏感字段和过长匹配）
-                              if (k.includes(qf) && !sensitiveFields.some(s => k.includes(s))) {
-                                return qfLower.length >= 2 && k.length < qf.length + 10;
-                              }
+                              // 完全匹配
+                              if (k === qf || k.toLowerCase() === qfLower) return true;
+                              // 包含匹配（排除敏感字段）
+                              if (sensitiveFields.some(s => k.includes(s))) return false;
+                              // 智能匹配：查询词是字段名的一部分
+                              if (k.includes(qf) || qf.includes(k)) return true;
+                              // 特殊映射：合同结束日期 -> 劳动合同/协议结束日期
+                              if (qf.includes('合同结束') && k.includes('合同') && k.includes('结束')) return true;
+                              if (qf.includes('合同主体') && k === '合同主体') return true;
                               return false;
                             });
                             return baseFields.includes(k) || matched;
                           } else {
-                            // 用户没指定字段，显示基础字段 + 常用字段
-                            const defaultFields = ['HRBP姓名', '事业部', '职级', '员工状态', '合同主体', '合同结束日期', '工作地点名称', '社保缴纳地'];
+                            const defaultFields = ['HRBP姓名', '事业部', '职级', '员工状态', '合同主体', '劳动合同/协议结束日期', '工作地点名称', '社保缴纳地'];
                             return baseFields.includes(k) || defaultFields.includes(k);
                           }
                         })
@@ -501,18 +500,19 @@ function App() {
                           if (queriedFields.length > 0) {
                             const matched = queriedFields.some(qf => {
                               const qfLower = qf.toLowerCase();
-                              if (k.toLowerCase() === qfLower) return true;
                               if (qfLower === 'hrbp') {
                                 return k === 'HRBP姓名' || k === 'HRBP用户名';
                               }
-                              if (k.includes(qf) && !sensitiveFields.some(s => k.includes(s))) {
-                                return qfLower.length >= 2 && k.length < qf.length + 10;
-                              }
+                              if (k === qf || k.toLowerCase() === qfLower) return true;
+                              if (sensitiveFields.some(s => k.includes(s))) return false;
+                              if (k.includes(qf) || qf.includes(k)) return true;
+                              if (qf.includes('合同结束') && k.includes('合同') && k.includes('结束')) return true;
+                              if (qf.includes('合同主体') && k === '合同主体') return true;
                               return false;
                             });
                             return baseFields.includes(k) || matched;
                           } else {
-                            const defaultFields = ['HRBP姓名', '事业部', '职级', '员工状态', '合同主体', '合同结束日期', '工作地点名称', '社保缴纳地'];
+                            const defaultFields = ['HRBP姓名', '事业部', '职级', '员工状态', '合同主体', '劳动合同/协议结束日期', '工作地点名称', '社保缴纳地'];
                             return baseFields.includes(k) || defaultFields.includes(k);
                           }
                         })
