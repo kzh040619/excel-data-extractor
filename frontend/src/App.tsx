@@ -284,6 +284,15 @@ function App() {
       
       const result = await response.json();
       
+      // 处理空结果
+      if ((result.type === 'query' || result.type === 'export') && result.count === 0) {
+        setChatMessages(prev => [...prev, { 
+          role: 'assistant', 
+          content: '❌ 未查询到符合条件的数据。\n\n请检查筛选条件是否正确，或尝试调整查询条件。\n\n💡 提示：\n• 确认字段名拼写正确\n• 检查筛选值是否存在\n• 尝试使用模糊匹配（如部分部门名称）'
+        }]);
+        return;
+      }
+      
       if (result.type === 'query' || result.type === 'export') {
         // 查询或导出请求 - 显示预览
         setChatMessages(prev => [...prev, { 
