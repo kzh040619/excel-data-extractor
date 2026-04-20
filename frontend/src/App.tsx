@@ -426,13 +426,19 @@ function App() {
                       columns={Object.keys(quickResult.record || {})
                         .filter(k => {
                           if (quickViewMode === 'full') return true;
-                          // 简要模式：显示基础字段 + 用户查询的字段
+                          // 简要模式：显示基础字段 + 用户查询的字段（精确匹配）
                           const baseFields = ['姓名', '用户名', '证件姓名'];
                           if (queriedFields.length > 0) {
-                            // 用户指定了字段，只显示基础字段 + 匹配的字段
-                            return baseFields.includes(k) || queriedFields.some(qf => k.toLowerCase().includes(qf.toLowerCase()));
+                            // 用户指定了字段，只显示基础字段 + 精确匹配的字段
+                            const matched = queriedFields.some(qf => {
+                              const qfLower = qf.toLowerCase();
+                              // 优先完全匹配，其次包含匹配（但字段名必须包含完整查询词）
+                              return k === qf || k.toLowerCase() === qfLower || 
+                                     (k.toLowerCase().includes(qfLower) && qfLower.length >= 2);
+                            });
+                            return baseFields.includes(k) || matched;
                           } else {
-                            // 用户没指定字段，显示基础字段 + 所有常用字段
+                            // 用户没指定字段，显示基础字段 + 常用字段
                             const defaultFields = ['HRBP姓名', '事业部', '职级', '员工状态', '合同主体', '合同结束日期', '工作地点名称', '社保缴纳地'];
                             return baseFields.includes(k) || defaultFields.includes(k);
                           }
@@ -482,7 +488,12 @@ function App() {
                           if (quickViewMode === 'full') return true;
                           const baseFields = ['姓名', '用户名', '证件姓名'];
                           if (queriedFields.length > 0) {
-                            return baseFields.includes(k) || queriedFields.some(qf => k.toLowerCase().includes(qf.toLowerCase()));
+                            const matched = queriedFields.some(qf => {
+                              const qfLower = qf.toLowerCase();
+                              return k === qf || k.toLowerCase() === qfLower || 
+                                     (k.toLowerCase().includes(qfLower) && qfLower.length >= 2);
+                            });
+                            return baseFields.includes(k) || matched;
                           } else {
                             const defaultFields = ['HRBP姓名', '事业部', '职级', '员工状态', '合同主体', '合同结束日期', '工作地点名称', '社保缴纳地'];
                             return baseFields.includes(k) || defaultFields.includes(k);
