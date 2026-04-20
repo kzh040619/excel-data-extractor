@@ -381,6 +381,7 @@ function App() {
           </>
         )}
         <Button icon={<ReloadOutlined />} size="small" onClick={() => { refresh(); refreshRecent(); }}>刷新</Button>
+        </div>
       </div>
 
       <div className="main-content">
