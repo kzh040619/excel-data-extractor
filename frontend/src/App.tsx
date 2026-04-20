@@ -368,10 +368,14 @@ function App() {
 
       <div className="main-content">
         {/* Section 1: Quick Query */}
-        <Card className="section-card" title={<span className="section-title">🔍 信息查询</span>}>
-          <div style={{ marginBottom: 12, padding: 8, background: '#f0f5ff', borderRadius: 4, fontSize: 13, color: '#555' }}>
-            💡 <b>功能说明：</b>输入员工姓名和字段名，快速查询该员工的完整信息。支持模糊匹配，返回所有匹配记录。
-          </div>
+        <Card className="section-card" title={
+          <span className="section-title">
+            🔍 信息查询
+            <span style={{ fontSize: 13, color: '#888', fontWeight: 'normal', marginLeft: 16 }}>
+              输入姓名+字段，快速查询员工信息
+            </span>
+          </span>
+        }>
           <div className="query-input-row">
             <Input
               placeholder="输入：张三 hrbp / 张三 合同主体"
@@ -540,10 +544,14 @@ function App() {
         </Card>
 
         {/* Section 2: Export */}
-        <Card className="section-card" title={<span className="section-title">📤 字段导出 Excel</span>}>
-          <div style={{ marginBottom: 12, padding: 8, background: '#f6ffed', borderRadius: 4, fontSize: 13, color: '#555' }}>
-            💡 <b>功能说明：</b>使用快捷模板或自定义条件筛选员工数据，导出指定字段的Excel报表。支持多条件组合筛选。
-          </div>
+        <Card className="section-card" title={
+          <span className="section-title">
+            📤 字段导出 Excel
+            <span style={{ fontSize: 13, color: '#888', fontWeight: 'normal', marginLeft: 16 }}>
+              快捷模板或自定义条件，导出Excel报表
+            </span>
+          </span>
+        }>
           {/* 快捷键按钮 */}
           <div style={{ marginBottom: 16 }}>
             <div style={{ marginBottom: 8, fontWeight: 500, color: '#666' }}>快捷模板：</div>
@@ -665,6 +673,9 @@ function App() {
         <Card className="section-card" title={
           <span className="section-title">
             💬 自然语言任务
+            <span style={{ fontSize: 13, color: '#888', fontWeight: 'normal', marginLeft: 16 }}>
+              自然语言描述需求，AI生成数据报表
+            </span>
             <Button 
               size="small" 
               type="link" 
@@ -676,13 +687,11 @@ function App() {
             </Button>
           </span>
         }>
-          <div style={{ marginBottom: 12, padding: 8, background: '#fff7e6', borderRadius: 4, fontSize: 13, color: '#555' }}>
-            💡 <b>功能说明：</b>使用自然语言描述需求，AI自动解析并生成数据报表。支持复杂查询和多轮对话。
-          </div>
-          <div style={{ padding: 12, background: llmConfig.configured ? '#f6ffed' : '#fff7e6', borderRadius: 8, marginBottom: 12, fontSize: 13 }}>
-            <b>{llmConfig.configured ? '✅ AI助手已就绪' : '⚠️ 请先配置大模型API'}</b>
-            <br/>• 支持自然语言对话和智能查询
-          </div>
+          {!llmConfig.configured && (
+            <div style={{ padding: 12, background: '#fff7e6', borderRadius: 8, marginBottom: 12, fontSize: 13 }}>
+              <b>⚠️ 请先配置大模型API</b>
+            </div>
+          )}
           
           <div className="chat-area">
             <div className="chat-messages" style={{ height: 200, overflowY: 'auto' }}>
