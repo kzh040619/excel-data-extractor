@@ -222,10 +222,16 @@ function App() {
     }
     if (!quickQuery.trim()) return;
     
-    // 解析查询字段（提取除姓名外的字段）
+    // 解析查询字段：第一部分是姓名，后面都是字段名
     const parts = quickQuery.trim().split(/\s+/);
-    const fields = parts.slice(1).filter(p => p && !p.includes('张三') && !p.includes('李四'));
-    setQueriedFields(fields);
+    if (parts.length > 1) {
+      // 提取字段名（从第二个词开始）
+      const fields = parts.slice(1);
+      setQueriedFields(fields);
+    } else {
+      // 只有姓名，没有指定字段
+      setQueriedFields([]);
+    }
     
     try {
       const result = await queryApi.quick({ fileId: current.id, query: quickQuery });
@@ -422,10 +428,14 @@ function App() {
                           if (quickViewMode === 'full') return true;
                           // 简要模式：显示基础字段 + 用户查询的字段
                           const baseFields = ['姓名', '用户名', '证件姓名'];
-                          const queryFields = queriedFields.length > 0 
-                            ? queriedFields 
-                            : ['HRBP姓名', '事业部', '职级', '员工状态'];
-                          return baseFields.includes(k) || queryFields.some(qf => k.toLowerCase().includes(qf.toLowerCase()));
+                          if (queriedFields.length > 0) {
+                            // 用户指定了字段，只显示基础字段 + 匹配的字段
+                            return baseFields.includes(k) || queriedFields.some(qf => k.toLowerCase().includes(qf.toLowerCase()));
+                          } else {
+                            // 用户没指定字段，显示基础字段 + 所有常用字段
+                            const defaultFields = ['HRBP姓名', '事业部', '职级', '员工状态', '合同主体', '合同结束日期', '工作地点名称', '社保缴纳地'];
+                            return baseFields.includes(k) || defaultFields.includes(k);
+                          }
                         })
                         .map(k => ({ 
                           title: k, 
@@ -471,10 +481,12 @@ function App() {
                         .filter(k => {
                           if (quickViewMode === 'full') return true;
                           const baseFields = ['姓名', '用户名', '证件姓名'];
-                          const queryFields = queriedFields.length > 0 
-                            ? queriedFields 
-                            : ['HRBP姓名', '事业部', '职级', '员工状态'];
-                          return baseFields.includes(k) || queryFields.some(qf => k.toLowerCase().includes(qf.toLowerCase()));
+                          if (queriedFields.length > 0) {
+                            return baseFields.includes(k) || queriedFields.some(qf => k.toLowerCase().includes(qf.toLowerCase()));
+                          } else {
+                            const defaultFields = ['HRBP姓名', '事业部', '职级', '员工状态', '合同主体', '合同结束日期', '工作地点名称', '社保缴纳地'];
+                            return baseFields.includes(k) || defaultFields.includes(k);
+                          }
                         })
                         .map(k => ({ 
                           title: k, 
