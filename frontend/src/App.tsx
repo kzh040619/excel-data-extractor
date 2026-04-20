@@ -346,42 +346,46 @@ function App() {
 
   return (
     <div className="app-container">
+      {/* Brand Header */}
+      <div style={{ 
+        background: 'linear-gradient(135deg, #1890ff 0%, #40a9ff 100%)', 
+        padding: '12px 24px', 
+        textAlign: 'center',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+      }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 12 }}>
+          <img src="/logo.svg" alt="取数宝" style={{ width: 36, height: 36 }} />
+          <span style={{ fontSize: 24, fontWeight: 'bold', color: 'white' }}>取数宝</span>
+        </div>
+      </div>
+      
       {/* Top Bar */}
-      <div className="top-bar" style={{ position: 'relative' }}>
-        {/* Left: Data Source */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span className="file-label">数据源：</span>
-          {loading ? (
-            <span>加载中...</span>
-          ) : current ? (
-            <span className="file-name">{current.fileName}</span>
-          ) : (
-            <span className="file-name" style={{ color: '#999' }}>未选择文件</span>
-          )}
-          <Upload accept=".xlsx,.xls" beforeUpload={handleUpload} showUploadList={false}>
-            <Button icon={<UploadOutlined />} size="small">上传</Button>
-          </Upload>
-          {files.length > 0 && (
-            <>
-              <span style={{ fontSize: 13, color: '#888', marginLeft: 16 }}>历史记录：</span>
-              <Select
-                size="small"
-                style={{ width: 180 }}
-                placeholder="选择历史文件"
-                value={current?.id}
-                onChange={handleSelectFile}
-                options={files.map(f => ({ value: f.id, label: f.fileName }))}
-              />
-            </>
-          )}
-          <Button icon={<ReloadOutlined />} size="small" onClick={() => { refresh(); refreshRecent(); }}>刷新</Button>
-        </div>
-        
-        {/* Center: Brand */}
-        <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', display: 'flex', alignItems: 'center', gap: 12 }}>
-          <img src="/logo.svg" alt="取数宝" style={{ width: 32, height: 32 }} />
-          <span style={{ fontSize: 20, fontWeight: 'bold', color: '#1890ff' }}>取数宝</span>
-        </div>
+      <div className="top-bar">
+        <span className="file-label">数据源：</span>
+        {loading ? (
+          <span>加载中...</span>
+        ) : current ? (
+          <span className="file-name">{current.fileName}</span>
+        ) : (
+          <span className="file-name" style={{ color: '#999' }}>未选择文件</span>
+        )}
+        <Upload accept=".xlsx,.xls" beforeUpload={handleUpload} showUploadList={false}>
+          <Button icon={<UploadOutlined />} size="small">上传</Button>
+        </Upload>
+        {files.length > 0 && (
+          <>
+            <span style={{ fontSize: 13, color: '#888', marginLeft: 16 }}>历史记录：</span>
+            <Select
+              size="small"
+              style={{ width: 180 }}
+              placeholder="选择历史文件"
+              value={current?.id}
+              onChange={handleSelectFile}
+              options={files.map(f => ({ value: f.id, label: f.fileName }))}
+            />
+          </>
+        )}
+        <Button icon={<ReloadOutlined />} size="small" onClick={() => { refresh(); refreshRecent(); }}>刷新</Button>
       </div>
 
       <div className="main-content">
