@@ -348,21 +348,29 @@ function App() {
     <div className="app-container">
       {/* Top Bar */}
       <div className="top-bar">
-        <span className="file-label">数据源：</span>
-        {loading ? (
-          <span>加载中...</span>
-        ) : current ? (
-          <span className="file-name">{current.fileName}</span>
-        ) : (
-          <span className="file-name" style={{ color: '#999' }}>未选择文件</span>
-        )}
-        <Upload accept=".xlsx,.xls" beforeUpload={handleUpload} showUploadList={false}>
-          <Button icon={<UploadOutlined />} size="small">上传</Button>
-        </Upload>
-        {files.length > 0 && (
-          <>
-            <span style={{ fontSize: 13, color: '#888', marginLeft: 16 }}>历史记录：</span>
-            <Select
+        {/* Brand */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <img src="/logo.svg" alt="取数宝" style={{ width: 32, height: 32 }} />
+          <span style={{ fontSize: 20, fontWeight: 'bold', color: '#1890ff' }}>取数宝</span>
+        </div>
+        
+        {/* Data Source */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto' }}>
+          <span className="file-label">数据源：</span>
+          {loading ? (
+            <span>加载中...</span>
+          ) : current ? (
+            <span className="file-name">{current.fileName}</span>
+          ) : (
+            <span className="file-name" style={{ color: '#999' }}>未选择文件</span>
+          )}
+          <Upload accept=".xlsx,.xls" beforeUpload={handleUpload} showUploadList={false}>
+            <Button icon={<UploadOutlined />} size="small">上传</Button>
+          </Upload>
+          {files.length > 0 && (
+            <>
+              <span style={{ fontSize: 13, color: '#888', marginLeft: 16 }}>历史记录：</span>
+              <Select
               size="small"
               style={{ width: 180 }}
               placeholder="选择历史文件"
