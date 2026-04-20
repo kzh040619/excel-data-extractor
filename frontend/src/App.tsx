@@ -347,15 +347,9 @@ function App() {
   return (
     <div className="app-container">
       {/* Top Bar */}
-      <div className="top-bar">
-        {/* Brand */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <img src="/logo.svg" alt="取数宝" style={{ width: 32, height: 32 }} />
-          <span style={{ fontSize: 20, fontWeight: 'bold', color: '#1890ff' }}>取数宝</span>
-        </div>
-        
-        {/* Data Source */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto' }}>
+      <div className="top-bar" style={{ position: 'relative' }}>
+        {/* Left: Data Source */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span className="file-label">数据源：</span>
           {loading ? (
             <span>加载中...</span>
@@ -371,16 +365,22 @@ function App() {
             <>
               <span style={{ fontSize: 13, color: '#888', marginLeft: 16 }}>历史记录：</span>
               <Select
-              size="small"
-              style={{ width: 180 }}
-              placeholder="选择历史文件"
-              value={current?.id}
-              onChange={handleSelectFile}
-              options={files.map(f => ({ value: f.id, label: f.fileName }))}
-            />
-          </>
-        )}
-        <Button icon={<ReloadOutlined />} size="small" onClick={() => { refresh(); refreshRecent(); }}>刷新</Button>
+                size="small"
+                style={{ width: 180 }}
+                placeholder="选择历史文件"
+                value={current?.id}
+                onChange={handleSelectFile}
+                options={files.map(f => ({ value: f.id, label: f.fileName }))}
+              />
+            </>
+          )}
+          <Button icon={<ReloadOutlined />} size="small" onClick={() => { refresh(); refreshRecent(); }}>刷新</Button>
+        </div>
+        
+        {/* Center: Brand */}
+        <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', display: 'flex', alignItems: 'center', gap: 12 }}>
+          <img src="/logo.svg" alt="取数宝" style={{ width: 32, height: 32 }} />
+          <span style={{ fontSize: 20, fontWeight: 'bold', color: '#1890ff' }}>取数宝</span>
         </div>
       </div>
 
